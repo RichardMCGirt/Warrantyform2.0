@@ -1,0 +1,792 @@
+/* General Reset */
+body {
+    font-family: Arial, sans-serif;
+    background-color: lightgray;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+
+#checkbox-menu {
+    position: relative;
+    display: inline-block;
+}
+
+#menu-toggle {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#menu-toggle:hover {
+    background-color: #0056b3;
+}
+
+/* Initially Hidden */
+#checkbox-container {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    width: 250px;
+    display: none; /* Hide initially */
+    z-index: 1000;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#checkbox-container.show {
+    display: block; /* Show when toggled */
+}
+
+.checkbox-row {
+    display: flex;
+    flex-wrap: wrap;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+
+/* Navigation Link Styles */
+.nav-link {
+    display: inline-block;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #003366; /* Matches your button color */
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+/* Container to align the filter button and search bar */
+#filter-search-container {
+    display: flex;
+    align-items: center; /* Align items vertically */
+    gap: 10px; /* Space between elements */
+}
+
+/* Ensure the button and input have proper spacing */
+#checkbox-menu {
+    display: flex;
+    align-items: center;
+}
+
+#menu-toggle {
+    padding: 8px 12px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#search-input {
+    flex: 1; /* Makes the search input take available space */
+    padding: 8px;
+    font-size: 16px;
+    min-width: 200px;
+}
+
+
+.nav-link:hover {
+    background-color: #002244; /* Darker shade for hover effect */
+    transform: translateY(-2px); /* Slight lift effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for hover */
+}
+
+.nav-link.active {
+    background-color: #002244; /* Highlight active state */
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+}
+
+td {
+    max-height: 100px;
+}
+
+.table-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* Stretch container to fit */
+    height: 30vh !important /* Make sure it takes full viewport */
+}
+
+/* Default style for both tables */
+.scrollable-div {
+    margin: 0 auto;
+    max-width: calc(100% - 40px); /* Set 20px margin on each side */
+    overflow-x: auto;
+    min-height: calc(100% - 95%) !important;
+}
+
+.single-table-view .scrollable-div {
+    width: calc(100% - 0px); /* Adjust to match your desired width */
+    margin: 0 auto;
+    height: auto;
+}
+
+#airtable-data th:nth-child(2),
+#airtable-data td:nth-child(2),
+#feild-data td:nth-child(2),
+#feild-data th:nth-child(2) {
+    display: none;
+}
+
+
+td:nth-child(7) .delete-button,
+td:nth-child(7) .add-photo-button {
+    width: 100%;
+ 
+    border: none;
+    border-radius: 5px;
+    background-color: darkred;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+        /* Add styles to make divs scrollable */
+        .scrollable-div {
+            max-height: 2000px; /* Set a max-height for scrollable area */
+            overflow-y: auto; /* Enable vertical scrolling */
+            overflow-x: auto;
+            position: relative; /* Required for sticky to work */
+
+        }
+
+        /* CSS for Dropbox Dropdown or other elements */
+.dropbox-container {
+    position: relative; /* Ensures it's positioned relative to its parent */
+    z-index: 1000; /* Ensures it is above other elements when dropdown is open */
+}
+
+.dropbox-dropdown {
+    position: absolute; /* Absolute within the relative container */
+    top: 100%; /* Position dropdown just below the element */
+    left: 0;
+    background-color: white; /* Adjust based on your UI */
+    border: 1px solid #ccc;
+    z-index: 2000; /* Higher index to ensure it shows above other content */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+   
+
+/* Header Styles */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    cursor: pointer;
+    position: fixed;
+}
+
+.logo {
+    height: 80px;
+    margin: 0 auto; /* Centers horizontally */
+    display: block; /* Ensures it takes up full width */
+    transition: opacity 1s ease-in-out;
+}
+
+
+/* Main Content Styles */
+#main-content, #secoundary-content {
+    display: none;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+/* Table Styles */
+table {
+    width: 95%;
+    margin: 10px auto;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 2px solid #8B0000;
+}
+
+th, td {
+    border: 3px solid #131010;
+    padding: 8px;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: keep-all;
+}
+
+th {
+    background-color: #002244;
+    color: white;
+    font-weight: bold;
+    font-size: 19px;
+    position: sticky;
+    top: 0; /* Stick to the top */
+    z-index: 100; /* Ensure headers are above other content */
+    height: 3.5em;
+}
+
+.single-table-view .scrollable-div {
+    width: 100%;
+    overflow-y: auto;
+}
+.scrollable-div {
+    overflow-y: auto;
+}
+
+
+
+/* Alternate row colors */
+tbody tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #e6e6e6;
+}
+
+
+
+/* Editable Cell Styles */
+td[contenteditable="true"] {
+   
+    cursor: text;
+}
+
+td.edited {
+    background-color: rgb(85, 82, 82) !important;
+}
+
+/* Button Styles */
+button {
+    display: block;
+    width: 180px;
+    margin: 10px auto;
+    padding: 8px;
+    background-color: #003366;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #002244;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-4px);
+}
+
+/* Draggable Submit Button */
+#dynamic-submit-button {
+    width: 150px;
+    height: 50px;
+    background-color: #4caf50;
+    color: white;
+    font-size: 20px;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: move;
+    transition: background-color 0.3s ease;
+    z-index: 1000;
+    position: fixed;
+}
+
+#dynamic-submit-button:hover {
+    background-color: #388e3c;
+}
+
+/* Image Styles */
+.image-carousel {
+    position: relative;
+}
+
+.image-carousel img {
+    height: auto;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.image-moving {
+    position: absolute;
+    transition: all 0.8s ease-in-out;
+    opacity: 0;
+}
+
+.image-deleted {
+    animation: shrink 0.5s forwards;
+}
+
+@keyframes shrink {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+
+
+/* Image Viewer Modal */
+.image-viewer-modal {
+    display: flex;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+}
+
+.image-viewer-modal.show {
+    opacity: 1;
+}
+
+.modal-image {
+    max-width: 90vw; /* 90% of the viewport width */
+    max-height: 90vh; /* 90% of the viewport height */
+    width: auto; /* Ensure the image width is automatically adjusted */
+    height: auto; /* Ensure the image height is automatically adjusted */
+    object-fit: contain; /* Ensure the image maintains aspect ratio and fits within bounds */
+    margin: auto;
+    display: block;
+    border-radius: 5px; /* Optional: add rounded corners */
+}
+
+
+.close-modal-button {
+    position: absolute;
+    top: 20px;
+    right: 40px;
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Carousel Navigation Buttons */
+.carousel-nav-button {
+    width: 10%; /* Adjust width for a better fit */
+    border: none;
+    color: white;
+    font-size: 13px;
+    position: absolute;
+    top: 50%;
+    cursor: pointer;
+    z-index: 2;
+    opacity: 0.7;
+    background: rgba(0, 0, 0, 0.5); /* Optional: adds a semi-transparent background */
+    padding: 8px; /* Increase padding for better clickability */
+    border-radius: 5px;
+}
+
+.carousel-nav-button:hover {
+    opacity: 1;
+}
+
+.carousel-nav-button.prev {
+    width: 15%;
+    left: -3px; /* Moves the button slightly to the left to create space */
+
+}
+
+.carousel-nav-button.next {
+    right: -3px; /* Moves the button slightly to the right to create space */
+    width: 15%;
+
+}
+
+th:nth-child(14) , td:nth-child(14)
+{
+    display: none;
+}
+
+
+/* Custom Checkbox */
+.custom-checkbox {
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    appearance: none;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    border: 2px solid #9e9e9e;
+    transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+
+.custom-checkbox:checked {
+    background-color: rgb(103, 223, 103);
+    border-color: green;
+    transform: scale(1.1);
+}
+
+.custom-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    width: 6px;
+    height: 14px;
+    border: solid green;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
+
+/* Styled Select */
+.styled-select {
+    border-radius: 12px;
+    padding: 5px;
+    max-height: 150px; /* Set a max height for the dropdown when it is expanded */
+    overflow-y: auto;  /* Add vertical scroll when options exceed the height */
+
+    border: 1px solid #0e0e0e;
+    background-color: #f9f9f9;
+    transition: background-color 0.2s ease;
+    max-width: 100%;
+    position: relative;
+
+}
+
+.styled-select::-webkit-scrollbar {
+    width: 8px;
+}
+
+.styled-select::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 4px;
+}
+
+.styled-select::-webkit-scrollbar-thumb:hover {
+    background-color: #555;
+}
+
+
+.styled-select:focus {
+    background-color: #e0e0e0;
+}
+
+.styled-select option[value='Billable'] {
+    background-color: #ffeb3b;
+    color: #000;
+}
+
+.styled-select option[value='Non Billable'] {
+    background-color: #03a9f4;
+    color: #fff;
+}
+
+/* Search Input */
+.search-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#search-input {
+    padding: 8px;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 4px;
+    font-size: 16px;
+    border: 2px solid #8B0000;
+    display: block;
+    margin: 0 auto; /* This centers the element horizontally */
+}
+
+.checkbox-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, auto)); /* Adjust width as needed */
+    gap: 10px; /* Spacing between checkboxes */
+    align-items: center;
+}
+
+
+
+.checkbox-row label {
+    display: flex;
+    align-items: center;
+    gap: 5px;  /* Adds spacing between checkbox and text */
+    cursor: pointer;
+}
+
+
+.checkbox-container {
+    display: flex;
+    flex-direction: row; /* Ensures items are placed in a row */
+    flex-wrap: wrap; /* Allows checkboxes to wrap if needed */
+    gap: 15px; /* Adds spacing between checkboxes */
+    align-items: center; /* Aligns items in the center */
+    justify-content: flex-start; /* Aligns items to the left */
+    width: 100%; /* Ensures full width */
+}
+
+.checkbox-container label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px; /* Adds space between checkbox and label text */
+    white-space: nowrap; /* Prevents text from wrapping */
+}
+
+
+
+.checkbox-container input[type="checkbox"] {
+    width: 18px;
+    gap: 55px;  /* Adds spacing between checkboxes */
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-container span {
+    white-space: nowrap; /* Prevent text wrapping */
+    cursor: pointer; /* Optional: Makes text clickable alongside checkbox */
+}
+
+@media (max-width: 768px) {
+    .checkbox-container label {
+        flex: 1 1 100%; /* Full width on smaller screens */
+    }
+}
+
+
+
+/* Toast Notification */
+#toast {
+    visibility: hidden;
+    min-width: 15%;
+    max-height: 5%;
+    background-color: navy;
+    color: #fff;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    padding: 12px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 15px;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.modal.show {
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 650px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    border-radius: 10px;
+    transform: scale(0.9);
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.modal-content:hover {
+    background-color: whitesmoke;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.close:hover, .close:focus {
+    color: black;
+    background-color: #ddd;
+    transform: rotate(90deg);
+}
+
+/* Base adjustments for tablets and mobile devices */
+@media screen and (max-width: 1024px) {
+    /* Navigation */
+    .nav-link {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+
+    /* Table */
+    table {
+        width: 100%;
+    }
+
+    th, td {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .table-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch; /* Stretch container to fit */
+        height: 30vh !important /* Make sure it takes full viewport */
+    }
+    
+    /* Default style for both tables */
+    .scrollable-div {
+        margin: 0 auto;
+        max-width: calc(100% - 40px); /* Set 20px margin on each side */
+        overflow-x: auto;
+        min-height: 75vh !important;
+    }
+    
+    .single-table-view .scrollable-div {
+        width: calc(100% - 0px); /* Adjust to match your desired width */
+        margin: 0 auto;
+        height: auto;
+    }
+    
+
+    /* Search input */
+    #search-input {
+        width: 90%;
+        font-size: 14px;
+    }
+
+    /* Modal */
+    .modal-content {
+        width: 90%; /* Adjust modal to fit mobile screens */
+    }
+}
+
+@media screen and (max-width: 950px) {
+    /* Header and Logo */
+    .header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .logo {
+        width: 150px;
+        margin: 0 auto;
+    }
+
+    /* Navigation */
+    .nav-link {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    /* Search input */
+    #search-input {
+        width: 100%;
+    }
+
+    /* Tables */
+    th, td {
+        font-size: 12px;
+    }
+
+    /* Buttons */
+    button {
+        width: 140px;
+        font-size: 12px;
+    }
+}
+
+@media screen and (max-width: 430px) {
+    /* Navigation */
+    .nav-link {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+   
+    
+
+    th, td {
+        font-size: 15px;
+        padding: 6px;
+        max-height: fit-content;
+    }
+
+    /* Modal */
+    .modal-content {
+        width: 95%;
+    }
+
+    /* Toast */
+    #toast {
+        font-size: 12px;
+        padding: 8px;
+    }
+}
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .checkbox-container label {
+        flex: 1 1 100%; /* Stack items on smaller screens */
+    }
+
+    .search-container {
+        padding: 10px;
+    }
+
+    .filter-label {
+        font-size: 1rem;
+    }
+
+    #search-input {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .checkbox-container label {
+        font-size: 0.9rem;
+    }
+
+    #search-input {
+        font-size: 0.8rem;
+        padding: 6px;
+    }
+}
