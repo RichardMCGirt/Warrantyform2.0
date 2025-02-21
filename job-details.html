@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Details</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="detail.css">
 </head>
 <body>
 
     <nav>
-        <a href="index.html">🔙 Back to Job List</a>
+        <a href="index.html" class="back-button"> Back to Job List</a>
     </nav>
 
     <div class="job-details-container">
@@ -28,17 +28,47 @@
             <input type="text" id="homeowner-name" disabled>
 
             <label>Contact Email:</label>
-            <input type="email" id="contact-email">
+<input type="email" id="contact-email" data-field="Contact Email">
 
-            <label>Description of Issue:</label>
-            <textarea id="description"></textarea>
+<label>Description:</label>
+<textarea id="description" data-field="Description of Issue"></textarea>
 
-            <label>DOW to be Completed:</label>
-            <input type="date" id="dow-completed">
+<label>DOW to be Completed:</label>
+<input type="text" id="dow-completed" data-field="DOW to be Completed">
+
+<label>Subcontractor:</label>
+<select id="subcontractor" data-field="Subcontractor">
+    <option value="">Select a Subcontractor...</option>
+</select>
+
+<label>Subcontractor Payment:</label>
+<input type="number" id="subcontractor-payment" step="0.01" min="0" placeholder="$0.00" data-field="Subcontractor Payment">
+
+<label>Materials Needed:</label>
+<textarea id="materials-needed" data-field="Materials Needed"></textarea>
+
+<label>Job Completed:</label>
+<input type="checkbox" id="job-completed" data-field="Job Completed">
+
+<label>Field Tech Reviewed:</label>
+<input type="checkbox" id="field-tech-reviewed" data-field="Field Tech Reviewed">
+
+<label>Field Review Needed:</label>
+<input type="checkbox" id="field-review-needed" data-field="Field Review Needed">
+
+
+            <h3>Picture(s) of Issue:</h3>
+            <div id="issue-pictures"></div>
+            <input type="file" id="upload-issue-picture" multiple>
+
+            <h3>Completed Pictures:</h3>
+            <div id="completed-pictures"></div>
+            <input type="file" id="upload-completed-picture" multiple>
 
             <button type="button" id="save-job">Save Changes</button>
         </form>
     </div>
+
     <script>
         window.env = {
            AIRTABLE_API_KEY: 'patXTUS9m8os14OO1.6a81b7bc4dd88871072fe71f28b568070cc79035bc988de3d4228d52239c8238',
@@ -46,8 +76,8 @@
            AIRTABLE_TABLE_NAME: 'tbl6EeKPsNuEvt5yJ',
            AIRTABLE_TABLE_NAME2: 'tbl9SgC5wUi2TQuF7',
        };
-       
-           </script>
+    </script>
+    
     <script src="job-details.js"></script>
 </body>
 </html>

@@ -28,45 +28,55 @@ Promise.all([
 });
 
         // Function to check if Dropbox token is still valid
-        async function checkDropboxTokenValidity() {      
-            if (!dropboxAccessToken) {
-                return;
+       // Function to check if Dropbox token is still valid
+async function checkDropboxTokenValidity() {      
+    console.log("🔍 Checking Dropbox token validity...");
+
+    if (!dropboxAccessToken) {
+        console.warn("⚠️ Dropbox access token is missing or undefined.");
+        return;
+    }
+
+    console.log(`🔑 Using Dropbox access token: "${dropboxAccessToken.trim()}"`);
+
+    const accountInfoUrl = 'https://api.dropboxapi.com/2/users/get_current_account';
+
+    try {
+        const response = await fetch(accountInfoUrl, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${dropboxAccessToken.trim()}`,  // Ensure token is trimmed
             }
-        
-            const accountInfoUrl = 'https://api.dropboxapi.com/2/users/get_current_account';
-        
-            try {
-                const response = await fetch(accountInfoUrl, {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${dropboxAccessToken.trim()}`,  // Ensure token is trimmed
-                    }
-                });
-        
-                let responseData;
-                const contentType = response.headers.get('content-type');
-        
-                if (contentType && contentType.includes('application/json')) {
-                    responseData = await response.json();  
-                } else {
-                    responseData = await response.text(); 
-                }
-        
-                if (response.ok) {
-                    console.log('Dropbox token is still valid.');
-                } else if (response.status === 401) {
-                    console.error('Dropbox token is expired or invalid.');
-                    await refreshDropboxToken();  
-                } else {
-                    console.error(`Error while checking Dropbox token: ${response.status} ${response.statusText}`);
-                    console.log('Response data:', responseData);  
-                }
-            } catch (error) {
-                console.error('Error occurred while checking Dropbox token validity:', error);
-            }
+        });
+
+        console.log(`📡 Dropbox API response status: ${response.status} ${response.statusText}`);
+
+        let responseData;
+        const contentType = response.headers.get('content-type');
+
+        if (contentType && contentType.includes('application/json')) {
+            responseData = await response.json();  
+        } else {
+            responseData = await response.text(); 
         }
+
+        console.log("📥 Response data from Dropbox:", responseData);
+
+        if (response.ok) {
+            console.log('✅ Dropbox token is still valid.');
+        } else if (response.status === 401) {
+            console.error('❌ Dropbox token is expired or invalid. Attempting to refresh...');
+            await refreshDropboxToken();  
+        } else {
+            console.error(`⚠️ Error while checking Dropbox token: ${response.status} ${response.statusText}`);
+            console.log('❗ Response data:', responseData);  
+        }
+    } catch (error) {
+        console.error('🚨 Error occurred while checking Dropbox token validity:', error);
+    }
+}
+
                     
-    const loadingLogo = document.querySelector('.loading-logo');
     const mainContent = document.getElementById('main-content');
     const secondaryContent = document.getElementById('secoundary-content');
     const toast = document.getElementById('toast');
@@ -154,54 +164,56 @@ document.querySelectorAll('input, select, td[contenteditable="true"]').forEach(e
     // Fetch Dropbox credentials from Airtable
     async function fetchDropboxCredentials() {
         const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}`;
-
+    
         try {
             const response = await fetch(url, {
                 headers: { Authorization: `Bearer ${airtableApiKey}` }
             });
-
-
+    
             if (!response.ok) {
                 throw new Error(`Error fetching Dropbox credentials: ${response.status} ${response.statusText}`);
             }
-
+    
             const data = await response.json();
-
-            // Reset Dropbox credentials before setting them
+            console.log("Fetched Dropbox credentials:", data.records); // Log all records
+    
+            // Ensure credentials are properly fetched
             dropboxAccessToken = undefined;
             dropboxAppKey = undefined;
             dropboxAppSecret = undefined;
             dropboxRefreshToken = undefined;
-
+    
             for (const record of data.records) {
-            
+                console.log("Processing record:", record);
                 if (record.fields) {
                     if (record.fields['Dropbox Token']) {
-                        dropboxAccessToken = record.fields['Dropbox Token'];
+                        dropboxAccessToken = record.fields['Dropbox Token'].trim();
                     }
                     if (record.fields['Dropbox App Key']) {
-                        dropboxAppKey = record.fields['Dropbox App Key'];
+                        dropboxAppKey = record.fields['Dropbox App Key'].trim();
                     }
                     if (record.fields['Dropbox App Secret']) {
-                        dropboxAppSecret = record.fields['Dropbox App Secret'];
+                        dropboxAppSecret = record.fields['Dropbox App Secret'].trim();
                     }
-                    // Corrected lines below
-                    if (record.fields['Dropbox Refresh Token']) {  // Correct this to match your field name
-                        dropboxRefreshToken = record.fields['Dropbox Refresh Token'];  // Use the correct field name
+                    if (record.fields['Dropbox Refresh Token']) {
+                        dropboxRefreshToken = record.fields['Dropbox Refresh Token'].trim();
                     }
                 } else {
                     console.log('No fields found in this record:', record);
                 }
-            }      
-
+            }
+    
             if (!dropboxAccessToken || !dropboxAppKey || !dropboxAppSecret || !dropboxRefreshToken) {
                 console.error('One or more Dropbox credentials are missing after fetching.');
             } else {
+                console.log("Dropbox credentials loaded successfully.");
             }
         } catch (error) {
             console.error('Error occurred during fetchDropboxCredentials:', error);
         }
     }
+    
+    
 
     async function fetchCalendarLinks() {
         const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}`;
@@ -847,6 +859,8 @@ document.body.appendChild(fileInput);
             syncTableWidths();
         }
     }
+
+    
     
     function checkForChanges(recordId) {
         console.log(`Checking for changes in record ID: ${recordId}`);
