@@ -13,6 +13,22 @@ body {
     display: inline-block;
 }
 
+/* Hide all th and td by default */
+th, td {
+    display: none;
+}
+
+/* Show only Lot Number and Community */
+th:nth-child(4), td:nth-child(4) {
+    display: table-cell;
+}
+
+/* Show only Pictures/Indexes of Photos */
+th:nth-child(9), td:nth-child(9) {
+    display: table-cell;
+}
+
+
 #menu-toggle {
     background-color: #007bff;
     color: white;
