@@ -1,12 +1,17 @@
 document.addEventListener("DOMContentLoaded", async function () {
+    console.log("🚀 Page Loaded: JavaScript execution started!");
+    
     const params = new URLSearchParams(window.location.search);
     const recordId = params.get("id");
     const airtableApiKey = window.env.AIRTABLE_API_KEY;
     const airtableBaseId = window.env.AIRTABLE_BASE_ID;
     const airtableTableName = window.env.AIRTABLE_TABLE_NAME;
     const airtableTableName2 = window.env.AIRTABLE_TABLE_NAME2;
-
-    let dropboxAccessToken = null;
+    
+    console.log("🔑 API Key:", airtableApiKey);
+    console.log("📋 Base ID:", airtableBaseId);
+    console.log("📌 Table Name:", airtableTableName);
+    console.log("📌 Table Name 2:", airtableTableName2);
 
     if (!recordId) {
         alert("No job selected.");
@@ -14,21 +19,31 @@ document.addEventListener("DOMContentLoaded", async function () {
         return;
     }
 
+    let dropboxAccessToken = null;
+
     try {
+        console.log("✅ Fetching Job Details...");
+
         // ✅ Fetch Primary Job Details
         const primaryData = await fetchAirtableRecord(airtableTableName, recordId);
+        console.log("📋 Primary Data Fetched:", primaryData);
         populatePrimaryFields(primaryData.fields);
 
         // ✅ Fetch Additional Fields (Billable, Subcontractor, etc.)
         const secondaryData = await fetchAirtableRecord(airtableTableName2, recordId);
+        console.log("📋 Secondary Data Fetched:", secondaryData);
         populateAdditionalFields(secondaryData.fields);
 
         // ✅ Fetch Dropbox Token
         dropboxAccessToken = await fetchDropboxToken();
+        console.log("🔑 Dropbox Access Token:", dropboxAccessToken);
+
+        // ✅ Fetch Subcontractors and Populate Dropdown
+        await populateSubcontractorDropdown();
 
     } catch (error) {
-        console.error("Error loading job details:", error);
-    }
+        console.error("❌ Error loading job details:", error);
+    }   
 
     // ✅ Save Job Details
     document.getElementById("save-job").addEventListener("click", async function () {
@@ -358,49 +373,65 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     async function fetchSortedSubcontractors() {
-        console.log("Fetching subcontractors from Airtable...");
+        console.log("🚀 Fetching subcontractors from Airtable...");
     
         let records = [];
         let offset = null;
-        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME2}`;
+    
+        // ✅ Get the subcontractor table name correctly
+        const airtableBaseId = window.env.AIRTABLE_BASE_ID;
+        const airtableSubcontractorTableId = window.env.AIRTABLE_SUBCONTRACTOR_TABLE_NAME;
+        
+        // ✅ Check if the table name is properly set before making the request
+        if (!airtableSubcontractorTableId) {
+            console.error("❌ Subcontractor table name is undefined. Please check window.env.");
+            return [];
+        }
+    
+        const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableSubcontractorTableId}`;
     
         do {
-            console.log(`Fetching from: ${url}${offset ? `&offset=${offset}` : ''}`);
+            console.log(`🔎 Fetching from: ${url}${offset ? `&offset=${offset}` : ''}`);
     
             try {
-                const response = await fetch(`${url}?fields[]=Subcontractor&fields[]=b${offset ? `&offset=${offset}` : ''}`, {
+                const response = await fetch(`${url}?fields[]=Subcontractor Company Name&fields[]=Vanir Branch${offset ? `&offset=${offset}` : ''}`, {
                     headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
                 });
     
                 if (!response.ok) {
-                    console.error(`Error fetching subcontractors: ${response.status} ${response.statusText}`);
+                    console.error(`❌ Error fetching subcontractors: ${response.status} ${response.statusText}`);
                     break;
                 }
     
                 const data = await response.json();
+                console.log("📦 Full API Response:", data); // ✅ LOG FULL RESPONSE
+    
                 records = records.concat(data.records);
                 offset = data.offset;
     
-                console.log(`Fetched ${data.records.length} records. Offset: ${offset || 'No more pages'}`);
+                console.log(`✅ Fetched ${data.records.length} records. Offset: ${offset || 'No more pages'}`);
     
             } catch (error) {
-                console.error("Error during subcontractor fetch:", error);
+                console.error("❌ Error during subcontractor fetch:", error);
                 break;
             }
     
         } while (offset);
     
-        console.log(`Total subcontractors fetched: ${records.length}`);
+        console.log(`📌 Total subcontractors fetched: ${records.length}`);
     
-        // Extract and sort subcontractors by field 'b'
-        const subOptions = Array.from(new Set(records.map(record => ({
-            name: record.fields['Subcontractor'] || 'Unnamed Subcontractor',
-            vanirOffice: record.fields['b'] || 'Unknown Branch'
-        })))).sort((a, b) => a.vanirOffice.localeCompare(b.vanirOffice));
+        // ✅ Extract and sort subcontractors by field 'Vanir Branch'
+        const subOptions = records.map(record => ({
+            name: record.fields['Subcontractor Company Name'] || 'Unnamed Subcontractor',
+            vanirOffice: record.fields['Vanir Branch'] || 'Unknown Branch'
+        })).sort((a, b) => a.vanirOffice.localeCompare(b.vanirOffice));
     
-        console.log("Sorted subcontractors:", subOptions);
+        console.log("✅ Sorted subcontractors:", subOptions);
         return subOptions;
     }
+    
+    
+    
     
     // ✅ Populate Dropdown with Sorted Subcontractors
     async function populateSubcontractorDropdown() {
