@@ -7,11 +7,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const airtableBaseId = window.env.AIRTABLE_BASE_ID;
     const airtableTableName = window.env.AIRTABLE_TABLE_NAME;
     const airtableTableName2 = window.env.AIRTABLE_TABLE_NAME2;
-    
-    console.log("🔑 API Key:", airtableApiKey);
-    console.log("📋 Base ID:", airtableBaseId);
-    console.log("📌 Table Name:", airtableTableName);
-    console.log("📌 Table Name 2:", airtableTableName2);
 
     if (!recordId) {
         alert("No job selected.");
@@ -38,12 +33,15 @@ document.addEventListener("DOMContentLoaded", async function () {
         dropboxAccessToken = await fetchDropboxToken();
         console.log("🔑 Dropbox Access Token:", dropboxAccessToken);
 
-        // ✅ Fetch Subcontractors and Populate Dropdown
-        await populateSubcontractorDropdown();
+        // ✅ Fetch Subcontractors Based on `b` Value and Populate Dropdown
+        console.log("✅ Fetching subcontractors based on branch `b`...");
+        await fetchAndPopulateSubcontractors(recordId);
 
     } catch (error) {
         console.error("❌ Error loading job details:", error);
     }   
+
+
 
     // ✅ Save Job Details
     document.getElementById("save-job").addEventListener("click", async function () {
@@ -372,94 +370,111 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    async function fetchSortedSubcontractors() {
-        console.log("🚀 Fetching subcontractors from Airtable...");
+    async function fetchAndPopulateSubcontractors(recordId) {
+        console.log("🚀 Fetching branch `b` for record:", recordId);
     
-        let records = [];
-        let offset = null;
-    
-        // ✅ Get the subcontractor table name correctly
         const airtableBaseId = window.env.AIRTABLE_BASE_ID;
-        const airtableSubcontractorTableId = window.env.AIRTABLE_SUBCONTRACTOR_TABLE_NAME;
-        
-        // ✅ Check if the table name is properly set before making the request
-        if (!airtableSubcontractorTableId) {
-            console.error("❌ Subcontractor table name is undefined. Please check window.env.");
-            return [];
+        const primaryTableId = "tbl6EeKPsNuEvt5yJ"; // Table where `b` is found
+        const subcontractorTableId = "tbl9SgC5wUi2TQuF7"; // Subcontractor Table
+    
+        if (!recordId) {
+            console.error("❌ Record ID is missing.");
+            return;
         }
     
-        const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableSubcontractorTableId}`;
+        try {
+            // 1️⃣ Fetch `b` from the primary table
+            const primaryUrl = `https://api.airtable.com/v0/${airtableBaseId}/${primaryTableId}/${recordId}`;
+            console.log(`🔗 Fetching Branch URL: ${primaryUrl}`);
     
-        do {
-            console.log(`🔎 Fetching from: ${url}${offset ? `&offset=${offset}` : ''}`);
+            const primaryResponse = await fetch(primaryUrl, {
+                headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
+            });
     
-            try {
-                const response = await fetch(`${url}?fields[]=Subcontractor Company Name&fields[]=Vanir Branch${offset ? `&offset=${offset}` : ''}`, {
-                    headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
-                });
-    
-                if (!response.ok) {
-                    console.error(`❌ Error fetching subcontractors: ${response.status} ${response.statusText}`);
-                    break;
-                }
-    
-                const data = await response.json();
-                console.log("📦 Full API Response:", data); // ✅ LOG FULL RESPONSE
-    
-                records = records.concat(data.records);
-                offset = data.offset;
-    
-                console.log(`✅ Fetched ${data.records.length} records. Offset: ${offset || 'No more pages'}`);
-    
-            } catch (error) {
-                console.error("❌ Error during subcontractor fetch:", error);
-                break;
+            if (!primaryResponse.ok) {
+                throw new Error(`❌ Error fetching primary record: ${primaryResponse.statusText}`);
             }
     
-        } while (offset);
+            const primaryData = await primaryResponse.json();
+            const branchB = primaryData.fields?.b;
     
-        console.log(`📌 Total subcontractors fetched: ${records.length}`);
+            if (!branchB) {
+                console.warn("⚠️ No branch `b` found for this record.");
+                return;
+            }
     
-        // ✅ Extract and sort subcontractors by field 'Vanir Branch'
-        const subOptions = records.map(record => ({
-            name: record.fields['Subcontractor Company Name'] || 'Unnamed Subcontractor',
-            vanirOffice: record.fields['Vanir Branch'] || 'Unknown Branch'
-        })).sort((a, b) => a.vanirOffice.localeCompare(b.vanirOffice));
+            console.log(`📌 Found Branch 'b': ${branchB}`);
     
-        console.log("✅ Sorted subcontractors:", subOptions);
-        return subOptions;
+            // 2️⃣ Fetch subcontractors where `Vanir Branch` matches `b`
+            console.log(`🚀 Fetching subcontractors where Vanir Branch = '${branchB}'`);
+    
+            const subcontractorUrl = `https://api.airtable.com/v0/${airtableBaseId}/${subcontractorTableId}?filterByFormula=${encodeURIComponent(`{Vanir Branch} = '${branchB}'`)}&fields[]=Subcontractor Company Name&fields[]=Vanir Branch`;
+    
+            console.log(`🔗 Fetching Subcontractors URL: ${subcontractorUrl}`);
+    
+            const subcontractorResponse = await fetch(subcontractorUrl, {
+                headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
+            });
+    
+            if (!subcontractorResponse.ok) {
+                throw new Error(`❌ Error fetching subcontractors: ${subcontractorResponse.statusText}`);
+            }
+    
+            const subcontractorData = await subcontractorResponse.json();
+            console.log("📦 Subcontractor API Response:", subcontractorData);
+    
+            const subcontractors = subcontractorData.records.map(record => ({
+                name: record.fields['Subcontractor Company Name'] || 'Unnamed Subcontractor',
+                vanirOffice: record.fields['Vanir Branch'] || 'Unknown Branch'
+            }));
+    
+            console.log("✅ Filtered Subcontractors:", subcontractors);
+    
+            // 3️⃣ Populate the dropdown
+            populateSubcontractorDropdown(subcontractors);
+    
+        } catch (error) {
+            console.error("❌ Error:", error);
+        }
     }
+    
+    
+    
+       
+   
     
     
     
     
     // ✅ Populate Dropdown with Sorted Subcontractors
-    async function populateSubcontractorDropdown() {
-        console.log("Populating Subcontractor dropdown...");
+    function populateSubcontractorDropdown(subcontractors) {
+        console.log("📌 Populating the subcontractor dropdown...");
     
-        const subOptions = await fetchSortedSubcontractors();
-        const dropdown = document.getElementById('subcontractor');
+        const dropdown = document.getElementById("subcontractor-dropdown");
     
         if (!dropdown) {
-            console.error('Subcontractor dropdown element not found.');
+            console.error("❌ Subcontractor dropdown element not found.");
             return;
         }
     
-        dropdown.innerHTML = '<option value="">Select a Subcontractor...</option>'; // Clear existing options
+        dropdown.innerHTML = '<option value="">Select a Subcontractor...</option>'; // Reset dropdown
     
-        if (subOptions.length === 0) {
-            console.warn("⚠️ No subcontractors found. Dropdown will remain empty.");
+        if (subcontractors.length === 0) {
+            console.warn("⚠️ No matching subcontractors found.");
+            return;
         }
     
-        subOptions.forEach(option => {
-            const optionElement = document.createElement('option');
+        subcontractors.forEach(option => {
+            const optionElement = document.createElement("option");
             optionElement.value = option.name;
-            optionElement.textContent = `${option.name} - ${option.vanirOffice}`;
+            optionElement.textContent = `${option.name} (${option.vanirOffice})`;
             dropdown.appendChild(optionElement);
         });
     
-        console.log("Subcontractor dropdown populated successfully.");
+        console.log("✅ Subcontractor dropdown populated successfully.");
     }
+    
+    
     
     // ✅ Call this function when the page loads
     document.addEventListener('DOMContentLoaded', populateSubcontractorDropdown);
