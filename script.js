@@ -311,6 +311,41 @@ document.querySelectorAll('input, select, td[contenteditable="true"]').forEach(e
         }
     }
     
+    document.addEventListener("DOMContentLoaded", function () {
+        function hideColumnsExcept(tableId, columnIndex) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+    
+            const headers = table.querySelectorAll("th");
+            const rows = table.querySelectorAll("tr");
+    
+            headers.forEach((th, index) => {
+                if (index !== columnIndex) {
+                    th.style.display = "none";
+                } else {
+                    th.style.display = "table-cell";
+                }
+            });
+    
+            rows.forEach(row => {
+                row.querySelectorAll("td").forEach((td, index) => {
+                    if (index !== columnIndex) {
+                        td.style.display = "none";
+                    } else {
+                        td.style.display = "table-cell";
+                    }
+                });
+            });
+        }
+    
+        // Wait for data to be populated before applying column hiding
+        setTimeout(() => {
+            hideColumnsExcept("airtable-data", 3); // 4th column (0-based index)
+            hideColumnsExcept("feild-data", 3);
+        }, 1000); // Adjust timeout based on data load speed
+    });
+    
+    
     async function updateDropboxTokenInAirtable(token) {
         console.log('Updating Dropbox token in Airtable...');
         showToast('Updating Dropbox token in Airtable...');  // Notify the user that the token is being updated

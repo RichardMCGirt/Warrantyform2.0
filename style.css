@@ -15,12 +15,6 @@ body {
 
 
 
-/* Hide all table headers (th) and table data (td) in both tables */
-#airtable-data th, #airtable-data td,
-#feild-data th, #feild-data td {
-    display: none;
-}
-
 /* Keep only the "Lot Number and Community" column visible in both tables */
 #airtable-data th:nth-child(4), 
 #airtable-data td:nth-child(4),
@@ -28,11 +22,6 @@ body {
 #feild-data td:nth-child(4) {
     display: table-cell;
 }
-
-
-
-
-
 
 #menu-toggle {
     background-color: #007bff;
@@ -161,7 +150,13 @@ td {
 #airtable-data th:nth-child(2),
 #airtable-data td:nth-child(2),
 #feild-data td:nth-child(2),
-#feild-data th:nth-child(2) {
+#feild-data th:nth-child(2),
+#airtable-data th:nth-child(1),
+#airtable-data td:nth-child(1),
+#feild-data td:nth-child(1),
+#feild-data th:nth-child(1)
+
+ {
     display: none;
 }
 
