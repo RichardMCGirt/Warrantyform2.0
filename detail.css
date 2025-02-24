@@ -3,42 +3,37 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     margin: 0;
-    padding: 0;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-#description {
-    background-color: transparent !important;
-    max-width: 50% !important;
-  }
-  
-  
-
 /* Navigation */
 nav {
     width: 100%;
     background-color: #007bff;
-    padding: 10px 20px;
+    padding: 15px 20px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: left;
 }
 
 nav a {
     color: white;
     text-decoration: none;
     font-size: 16px;
+    font-weight: bold;
 }
 
 /* Job Details Container */
 .job-details-container {
     background: white;
-    width: 90%;
-    max-width: 600px;
-    padding: 20px;
+    width: 100%;
+    max-width: 700px;
+    padding: 25px;
     margin-top: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 /* Form Header */
@@ -46,6 +41,7 @@ nav a {
     text-align: center;
     margin-bottom: 20px;
     color: #333;
+    font-size: 24px;
 }
 
 /* Form Fields */
@@ -56,29 +52,58 @@ form {
 
 label {
     font-weight: bold;
-    margin: 10px 0 5px;
+    margin: 12px 0 5px;
     color: #555;
+    display: block;
 }
 
+/* Input & Textarea Styling */
 input,
-textarea {
+textarea,
+select {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 6px;
     font-size: 14px;
     background: #f9f9f9;
+    transition: border-color 0.3s ease-in-out;
 }
 
-input:disabled {
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+input:disabled,
+textarea:disabled {
     background: #e9ecef;
     cursor: not-allowed;
     max-width: 60%;
 }
 
+/* Textarea Styling */
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Dropdown Select */
+select {
+    cursor: pointer;
+}
+
+/* Grouped Form Fields */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* Back Button */
 .back-button {
     display: inline-block;
-    padding: 10px 20px;
+    padding: 12px 20px;
     font-size: 16px;
     font-weight: bold;
     text-decoration: none;
@@ -94,22 +119,15 @@ input:disabled {
     transform: scale(1.05);
 }
 
-label[for="field-status"],
-#field-status {
-    display: none;
-}
-
-
 .back-button:active {
     transform: scale(0.95);
     background-color: #004494;
 }
 
-
-/* Textarea Styling */
-textarea {
-    resize: vertical;
-    min-height: 80px;
+/* File Upload Section */
+#upload-issue-picture,
+#upload-completed-picture {
+    margin-top: 10px;
 }
 
 /* Save Button */
@@ -122,8 +140,34 @@ button {
     border-radius: 5px;
     cursor: pointer;
     margin-top: 20px;
+    transition: background 0.3s ease-in-out;
 }
 
 button:hover {
     background-color: #218838;
+}
+
+button:active {
+    background-color: #1e7e34;
+}
+
+/* Hide Status Field */
+label[for="field-status"],
+#field-status {
+    display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .job-details-container {
+        width: 95%;
+        padding: 20px;
+    }
+
+    input,
+    textarea,
+    select {
+        font-size: 14px;
+        padding: 10px;
+    }
 }
