@@ -69,7 +69,6 @@ function observeTableData(selector) {
 
 // ✅ Generate Checkboxes only when menu is clicked
 async function generateCheckboxes(fieldTechs) {
-    console.log("🔧 Generating Checkboxes...");
 
     const filterBranchDiv = document.getElementById('filter-branch');
     filterBranchDiv.innerHTML = ''; // Clear existing checkboxes
@@ -130,7 +129,6 @@ async function fetchFieldTechs() {
             }
         });
 
-        console.log("✅ Extracted Field Techs:", fieldTechsFromAirtable);
         generateCheckboxes(fieldTechsFromAirtable);
 
     } catch (error) {
@@ -139,12 +137,10 @@ async function fetchFieldTechs() {
 }
 
 function filterRows() {
-    console.log("🔎 Filtering rows based on selected checkboxes...");
 
     const selectedBranches = Array.from(document.querySelectorAll('#filter-branch input[name="branch"]:checked'))
         .map(checkbox => checkbox.value.toLowerCase().trim());
 
-    console.log("✅ Selected Branches for Filtering:", selectedBranches);
 
     const tables = [
         { table: document.querySelector('#airtable-data tbody'), h2: document.querySelector('#main-content h2') },
@@ -160,8 +156,6 @@ function filterRows() {
             setTimeout(filterRows, 500); // Wait and retry
             return;
         }
-
-        console.log(`🔍 Found ${tableRows.length} rows to filter`);
 
         let visibleRows = 0;
         tableRows.forEach(row => {
@@ -186,12 +180,7 @@ function filterRows() {
         }
     });
 
-    console.log("✅ Table Filtering Complete.");
 }
-
-
-
-
 
 // ✅ Function to extract Field Techs from the table dynamically
 function getFieldTechsFromTable() {

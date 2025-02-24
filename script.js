@@ -174,7 +174,6 @@ document.querySelectorAll('input, select, td[contenteditable="true"]').forEach(e
             }
     
             const data = await response.json();
-            console.log("Fetched Dropbox credentials:", data.records); // Log all records
     
             // Ensure credentials are properly fetched
             dropboxAccessToken = undefined;
@@ -183,7 +182,6 @@ document.querySelectorAll('input, select, td[contenteditable="true"]').forEach(e
             dropboxRefreshToken = undefined;
     
             for (const record of data.records) {
-                console.log("Processing record:", record);
                 if (record.fields) {
                     if (record.fields['Dropbox Token']) {
                         dropboxAccessToken = record.fields['Dropbox Token'].trim();
@@ -850,15 +848,21 @@ document.body.appendChild(fileInput);
                 record.fields['Status'] === 'Scheduled- Awaiting Field'  // Ensures 'Job Completed' is unchecked
             );
     
-            // Sort primary records by StartDate and Vanir Branch
-            primaryRecords.sort((a, b) => {
-                const dateA = new Date(a.fields['StartDate']);
-                const dateB = new Date(b.fields['StartDate']);
-    
-                if (dateA < dateB) return -1;
-                if (dateA > dateB) return 1;
-                return (a.fields['b'] || '').localeCompare(b.fields['b'] || '');
-            });
+      // Sort primary records by "Field Manager Assigned" alphabetically
+primaryRecords.sort((a, b) => {
+    const valueA = String(a.fields['Field Manager Assigned'] || '').toLowerCase();
+    const valueB = String(b.fields['Field Manager Assigned'] || '').toLowerCase();
+    return valueA.localeCompare(valueB);
+});
+
+// Sort secondary records by "Field Manager Assigned" alphabetically
+secondaryRecords.sort((a, b) => {
+    const valueA = String(a.fields['Field Manager Assigned'] || '').toLowerCase();
+    const valueB = String(b.fields['Field Manager Assigned'] || '').toLowerCase();
+    return valueA.localeCompare(valueB);
+});
+
+
     
             // Display the primary and secondary records in your tables with vendor options
             await displayData(primaryRecords, '#airtable-data', false, vendorOptions);
@@ -1511,16 +1515,13 @@ select.addEventListener('change', () => {
     cell.appendChild(checkboxElement);
 
     records.forEach(record => {
-        console.log(`🔄 Processing Record ID: ${record.id}`);
-        console.log("🛠 Available Fields:", record.fields);  // Log all fields in the record
+       
     
         fieldConfigs.forEach(config => {
-            console.log(`📌 Checking Field: ${config.field}, Value: ${config.value}`);
     
             // 🔥 Instead of checking jobDetailsLink, always log and apply the redirect
             if (config.field.includes("Lot Number")) {  
                 const jobId = record.id;  
-                console.log(`✅ Clickable redirect added for Record ID: ${jobId}, Field: ${config.field}, Value: ${config.value}`);
             
                 // Ensure cell is mutable
                 let cell = row.querySelector(`td[data-field="${config.field}"]`); 
@@ -1539,7 +1540,6 @@ select.addEventListener('change', () => {
                     window.location.href = `job-details.html?id=${jobId}`;
                 });
             
-                console.log(`🎯 Click event added successfully for: ${config.value}`);
             }
             
             

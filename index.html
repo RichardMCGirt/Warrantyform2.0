@@ -107,16 +107,106 @@
 
     <!-- Configuration for Airtable -->
     <script>
- window.env = {
-    AIRTABLE_API_KEY: 'patXTUS9m8os14OO1.6a81b7bc4dd88871072fe71f28b568070cc79035bc988de3d4228d52239c8238',
-    AIRTABLE_BASE_ID: 'appO21PVRA4Qa087I',
-    AIRTABLE_TABLE_NAME: 'tbl6EeKPsNuEvt5yJ',
-    AIRTABLE_TABLE_NAME2: 'tbl9SgC5wUi2TQuF7',
-};
+        window.env = {
+            AIRTABLE_API_KEY: 'patXTUS9m8os14OO1.6a81b7bc4dd88871072fe71f28b568070cc79035bc988de3d4228d52239c8238',
+            AIRTABLE_BASE_ID: 'appO21PVRA4Qa087I',
+            AIRTABLE_TABLE_NAME: 'tbl6EeKPsNuEvt5yJ',
+            AIRTABLE_TABLE_NAME2: 'tbl9SgC5wUi2TQuF7',
+        };
+        
+        document.addEventListener("DOMContentLoaded", function () {
+    function normalizeName(value) {
+        return value
+            .replace(/\u00A0/g, " ") // Replace non-breaking spaces
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ") // Normalize extra spaces
+            .split(",") // Split multiple names
+            .map(name => name.trim()) // Trim individual names
+            .sort() // Sort names alphabetically
+            .join(", "); // Join names back into a string
+    }
 
-    </script>
+    function mergeCellsByColumn(tableId, columnIndex) {
+        console.log(`🔍 Starting merge in table: ${tableId}, column index: ${columnIndex}`);
+
+        let table = document.getElementById(tableId);
+        if (!table) {
+            console.warn(`⚠️ Table with ID '${tableId}' not found.`);
+            return;
+        }
+
+        let rows = table.querySelectorAll("tbody tr");
+        if (rows.length < 2) {
+            console.warn(`⚠️ Not enough rows to merge in table '${tableId}'`);
+            return;
+        }
+
+        let previousCell = null;
+        let previousValue = "";
+        let rowspan = 1;
+
+        rows.forEach((row, index) => {
+            let cell = row.cells[columnIndex];
+
+            if (!cell) {
+                console.warn(`⚠️ No cell found at row ${index + 1}, column ${columnIndex}`);
+                return;
+            }
+
+            // Normalize and sort names before comparison
+            let currentValue = normalizeName(cell.innerText);
+
+            console.log(`🔎 Checking row ${index + 1}: ${currentValue}`);
+
+            if (previousCell && currentValue === previousValue) {
+                rowspan++;
+                previousCell.rowSpan = rowspan;
+                cell.remove(); // Remove the duplicate cell completely
+                console.log(`✅ Merged row ${index + 1} with previous.`);
+            } else {
+                previousCell = cell;
+                previousValue = currentValue;
+                rowspan = 1;
+            }
+        });
+
+        // Force table layout update
+        table.style.display = "none";
+        setTimeout(() => {
+            table.style.display = "table";
+        }, 50);
+    }
+
+    function waitForTableDataAndMerge(tableId, columnIndex) {
+        let checkTableInterval = setInterval(() => {
+            let table = document.getElementById(tableId);
+            if (table) {
+                let rows = table.querySelectorAll("tbody tr");
+                
+                if (rows.length > 1 && rows[0].cells.length > 1) {
+                    console.log(`✅ Data loaded in table '${tableId}'. Running merge function...`);
+                    clearInterval(checkTableInterval);
+                    mergeCellsByColumn(tableId, columnIndex);
+                } else {
+                    console.log(`⏳ Waiting for data in table '${tableId}'...`);
+                }
+            }
+        }, 500); // Check every 500ms
+    }
+
+    // Run after tables have data
+    waitForTableDataAndMerge("airtable-data", 2); // Third column (Index 2)
+    waitForTableDataAndMerge("feild-data", 2); // Third column (Index 2)
+});
+
+
+
+
+
+        </script>
+        
     <!-- JavaScript for interactivity -->
-    <script src="populatevendoremail.js"></script>
     <script src="script.js"></script>
     <script src="filter.js"></script>
 

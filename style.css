@@ -160,6 +160,16 @@ td {
     display: none;
 }
 
+/* Hide all columns except the specified ones */
+#airtable-data th:not(:nth-child(3)):not(:nth-child(4)),
+#airtable-data td:not(:nth-child(3)):not(:nth-child(4)),
+#feild-data th:not(:nth-child(3)):not(:nth-child(4)),
+#feild-data td:not(:nth-child(3)):not(:nth-child(4)) {
+    display: none;
+}
+
+
+
 
 td:nth-child(7) .delete-button,
 td:nth-child(7) .add-photo-button {
