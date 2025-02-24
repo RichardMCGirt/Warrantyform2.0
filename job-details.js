@@ -373,26 +373,19 @@ document.addEventListener("DOMContentLoaded", async function () {
                     value = input.checked;
                 } else if (input.tagName === "SELECT") {
                     value = input.value.trim();
-    
-                    // ✅ Skip empty select fields
-                    if (value === "" || value === "undefined") {
-                        console.warn(`⚠️ Skipping empty select field: ${fieldName}`);
-                        return;
-                    }
-    
-                    // ✅ Ensure value is in the allowed options
-                    const allowedOptions = {
-                        "Billable/ Non Billable": ["Billable", "Nonbillable"],
-                        "Homeowner Builder pay": ["Homeowner", "Subcontractor", "Builder"]
-                    };
-    
-                    if (allowedOptions[fieldName] && !allowedOptions[fieldName].includes(value)) {
-                        console.error(`❌ Invalid option for ${fieldName}: "${value}"`);
-                        return; // Skip invalid options
-                    }
+                    if (value === "" || value === "undefined") return;
+                } else if (input.type === "number") {
+                    value = input.value.trim();
+                    value = value === "" ? null : parseFloat(value); // ✅ Convert to number or null
                 } else {
                     value = input.value.trim();
-                    if (value === "") return; // Skip empty text fields
+                    if (value === "") return;
+                }
+    
+                // ✅ Ensure "Subcontractor Payment" is sent as a number
+                if (fieldName === "Subcontractor Payment") {
+                    value = parseFloat(value);
+                    if (isNaN(value)) value = null; // ✅ Prevent invalid values
                 }
     
                 updatedFields[fieldName] = value;
@@ -416,6 +409,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             alert("Error saving job details. Please try again.");
         }
     });
+    
     
     
     
