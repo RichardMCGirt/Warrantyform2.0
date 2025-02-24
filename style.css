@@ -13,21 +13,26 @@ body {
     display: inline-block;
 }
 
-/* Hide all th and td by default */
-/*th, td {
+
+
+/* Hide all table headers (th) and table data (td) in both tables */
+#airtable-data th, #airtable-data td,
+#feild-data th, #feild-data td {
     display: none;
 }
 
-/* Show only Lot Number and Community */
-/*th:nth-child(4), td:nth-child(4) {
+/* Keep only the "Lot Number and Community" column visible in both tables */
+#airtable-data th:nth-child(4), 
+#airtable-data td:nth-child(4),
+#feild-data th:nth-child(4), 
+#feild-data td:nth-child(4) {
     display: table-cell;
 }
 
-/* Show only Pictures/Indexes of Photos */
-/*th:nth-child(9), td:nth-child(9) {
-    display: table-cell;
-}
-*/
+
+
+
+
 
 #menu-toggle {
     background-color: #007bff;
