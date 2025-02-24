@@ -24,10 +24,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log("📋 Primary Data Fetched:", primaryData);
         populatePrimaryFields(primaryData.fields);
 
-        // ✅ Fetch Additional Fields (Billable, Subcontractor, etc.)
-        const secondaryData = await fetchAirtableRecord(airtableTableName2, recordId);
-        console.log("📋 Secondary Data Fetched:", secondaryData);
-        populateAdditionalFields(secondaryData.fields);
+        
 
         // ✅ Fetch Dropbox Token
         dropboxAccessToken = await fetchDropboxToken();
@@ -135,39 +132,87 @@ document.addEventListener("DOMContentLoaded", async function () {
         setInputValue("contact-email", job["Contact Email"]);
         setInputValue("description", job["Description of Issue"]);
         setInputValue("dow-completed", job["DOW to be Completed"]); 
-    }
-
-    // 🔹 Populate Additional Fields
-    function populateAdditionalFields(secondaryJob) {
-        setInputValue("billable-status", secondaryJob["Billable/ Non Billable"]);
-        setInputValue("homeowner-builder", secondaryJob["Homeowner Builder pay"]);
-        setInputValue("billable-reason", secondaryJob["Billable Reason (If Billable)"]);
-        setInputValue("subcontractor", secondaryJob["Subcontractor"]);
-        setInputValue("materials-needed", secondaryJob["Materials Needed"]);
-        setInputValue("subcontractor-payment", secondaryJob["Subcontractor Payment"]);
-
-        setCheckboxValue("job-completed", secondaryJob["Job Completed"]);
-        setCheckboxValue("field-review-needed", secondaryJob["Field Review Needed"]);
-        setCheckboxValue("field-tech-reviewed", secondaryJob["Field Tech Reviewed"]);
-
+        setInputValue("field-status", job["Status"]);
+        setInputValue("billable-status", job["Billable/ Non Billable"]);
+        setInputValue("homeowner-builder", job["Homeowner Builder pay"]);
+        setInputValue("billable-reason", job["Billable Reason (If Billable)"]);
+        setInputValue("subcontractor", job["Subcontractor"]);
+        setInputValue("materials-needed", job["Materials Needed"]);
+        setInputValue("subcontractor-payment", job["Subcontractor Payment"]);
+    
+        setCheckboxValue("job-completed", job["Job Completed"]);
+        setCheckboxValue("field-review-needed", job["Field Review Needed"]);
+        setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
+    
         // Load images from Airtable
-        displayImages(secondaryJob["Picture(s) of Issue"], "issue-pictures");
-        displayImages(secondaryJob["Completed Pictures"], "completed-pictures");
+        displayImages(job["Picture(s) of Issue"], "issue-pictures");
+        displayImages(job["Completed Pictures"], "completed-pictures");
+    
+        // If status is "Field Tech Review Needed", hide completed pictures and job completed elements
+        if (job["Status"] === "Field Tech Review Needed") {
+            // Hide Completed Pictures section and file input
+            const completedPictures = document.getElementById("completed-pictures");
+            const uploadCompletedPicture = document.getElementById("upload-completed-picture");
+            if (completedPictures) {
+                completedPictures.style.display = "none";
+            }
+            if (uploadCompletedPicture) {
+                uploadCompletedPicture.style.display = "none";
+            }
+    
+            // Hide Job Completed checkbox
+            const jobCompleted = document.getElementById("job-completed");
+            if (jobCompleted) {
+                jobCompleted.style.display = "none";
+            }
+    
+            // Hide the Job Completed label
+            const jobCompletedLabel = document.getElementById("job-completed-label");
+            if (jobCompletedLabel) {
+                jobCompletedLabel.style.display = "none";
+            }
+            
+            // Hide the Completed Pictures heading
+            const completedPicturesHeading = document.getElementById("completed-pictures-heading");
+            if (completedPicturesHeading) {
+                completedPicturesHeading.style.display = "none";
+            }
+        }
     }
+    
+     
+    
 
     // 🔹 Display Images
     function displayImages(images, containerId) {
         const container = document.getElementById(containerId);
         container.innerHTML = "";
+        
+        console.log("Images array:", images); // Debug log to verify data
+        
         if (images && images.length > 0) {
-            images.forEach(image => {
-                const imgElement = document.createElement("img");
-                imgElement.src = image.url;
-                imgElement.classList.add("uploaded-image");
-                container.appendChild(imgElement);
-            });
+          images.forEach(file => {
+            console.log("Processing file:", file); // Debug each file
+            
+            // If the URL ends with '.pdf', create an embed element; otherwise, an image.
+            if (file.url.toLowerCase().endsWith('.pdf')) {
+              const embedElement = document.createElement("embed");
+              embedElement.src = file.url;
+              embedElement.type = "application/pdf";
+              embedElement.width = "100%";
+              embedElement.height = "600px";
+              container.appendChild(embedElement);
+            } else {
+              const imgElement = document.createElement("img");
+              imgElement.src = file.url;
+              imgElement.classList.add("uploaded-image");
+              container.appendChild(imgElement);
+            }
+          });
         }
-    }
+      }
+      
+    
 
     document.addEventListener("DOMContentLoaded", function () {
         console.log("✅ Job Details Page Loaded.");

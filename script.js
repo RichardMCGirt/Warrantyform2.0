@@ -27,7 +27,6 @@ Promise.all([
     console.error("An error occurred during one of the fetch operations:", error);
 });
 
-        // Function to check if Dropbox token is still valid
        // Function to check if Dropbox token is still valid
 async function checkDropboxTokenValidity() {      
     console.log("🔍 Checking Dropbox token validity...");
