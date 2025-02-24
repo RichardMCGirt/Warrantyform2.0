@@ -43,56 +43,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 
 
-    // ✅ Save Job Details
-    document.getElementById("save-job").addEventListener("click", async function () {
-        console.log("🔄 Save button clicked. Collecting all field values...");
-        
-        // Collect all enabled inputs, textareas, and select elements
-        const inputs = document.querySelectorAll("input:not([disabled]), textarea:not([disabled]), select:not([disabled])");
-        const updatedFields = {};
-    
-        // Iterate over each element and extract its value based on type
-        inputs.forEach(input => {
-            const fieldName = input.getAttribute("data-field");
-            if (fieldName) {
-                let value;
-                if (input.type === "checkbox") {
-                    value = input.checked;
-                } else if (input.type === "number") {
-                    value = input.value.trim();
-                    value = value !== "" ? parseFloat(value) : null;
-                } else {
-                    value = input.value.trim();
-                }
-    
-                // Only add the field if it has a valid (non-null/non-empty) value
-                if (value !== null && value !== "") {
-                    updatedFields[fieldName] = value;
-                }
-            }
-        });
-    
-        console.log("📌 Final Fields to be Updated:", updatedFields);
-    
-        if (Object.keys(updatedFields).length === 0) {
-            console.warn("⚠️ No valid fields found to update.");
-            alert("No changes detected.");
-            return;
-        }
-    
-        // Send the data back to Airtable using your defined update function
-        try {
-            await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId, updatedFields);
-            console.log("✅ Airtable record updated successfully.");
-            alert("Job details saved successfully!");
-    
-            // Optionally, update the UI dynamically
-            updateUIAfterSave(recordId, updatedFields);
-        } catch (error) {
-            console.error("❌ Error updating Airtable record:", error);
-            alert("Error saving job details. Please try again.");
-        }
-    });
+   
     
     
 
@@ -115,35 +66,44 @@ document.addEventListener("DOMContentLoaded", async function () {
         return await response.json();
     }
 
-    // 🔹 Update Airtable Record Function
     async function updateAirtableRecord(tableName, recordId, fields) {
-        const url = `https://api.airtable.com/v0/${airtableBaseId}/${tableName}/${recordId}`;
+        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${tableName}/${recordId}`;
+    
+        console.log("📡 Sending API Request to Airtable:");
+        console.log("🔗 URL:", url);
+        console.log("📋 Fields Being Sent:", JSON.stringify(fields, null, 2));
     
         try {
             const response = await fetch(url, {
                 method: "PATCH",
                 headers: {
-                    Authorization: `Bearer ${airtableApiKey}`,
+                    Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ fields })
             });
     
+            const result = await response.json();
+            console.log("📩 Airtable Response:", JSON.stringify(result, null, 2));
+    
             if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
+                console.error(`❌ Airtable Error: ${response.status} ${response.statusText}`);
+                console.error("📜 Full Error Message from Airtable:", result);
+                throw new Error(`Error ${response.status}: ${JSON.stringify(result, null, 2)}`);
             }
     
             console.log("✅ Airtable record updated successfully:", fields);
             alert("Changes saved successfully!");
-    
-            // OPTIONAL: Refresh data from Airtable to reflect the saved changes
-           // await fetchRecordDetails(recordId);
-    
         } catch (error) {
             console.error("❌ Error updating Airtable:", error);
-            alert("Error saving changes. Please try again.");
+            alert(`Error saving job details. ${error.message}`);
         }
     }
+    
+    
+    
+    
+    
     
 
     // 🔹 Populate Primary Fields
@@ -161,7 +121,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         setInputValue("billable-reason", job["Billable Reason (If Billable)"]);
         setInputValue("subcontractor", job["Subcontractor"]);
         setInputValue("materials-needed", job["Materials Needed"]);
-        setInputValue("subcontractor-payment", job["Subcontractor Payment"]);
+        setInputValue("subcontractor-payment", job["Subcontractor Payment"]); // ✅ Ensure number is set
     
         setCheckboxValue("job-completed", job["Job Completed"]);
         setCheckboxValue("field-review-needed", job["Field Review Needed"]);
@@ -207,19 +167,25 @@ document.addEventListener("DOMContentLoaded", async function () {
     async function loadJobDetails(recordId) {
         try {
             console.log("📡 Fetching job details for:", recordId);
-            const jobData = await fetchAirtableRecord(airtableTableName, recordId);
+            const jobData = await fetchAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId);
     
             if (jobData && jobData.fields) {
                 console.log("✅ Job data fetched:", jobData.fields);
+                
+                // ✅ Store current subcontractor selection before repopulating
+                if (jobData.fields["Subcontractor"]) {
+                    document.getElementById("subcontractor-dropdown").setAttribute("data-selected", jobData.fields["Subcontractor"]);
+                }
     
-                // Display images in UI
-                displayImages(jobData.fields["Picture(s) of Issue"], "issue-pictures", "Picture(s) of Issue");
-                displayImages(jobData.fields["Completed Pictures"], "completed-pictures", "Completed Pictures");
+                // ✅ Populate dropdown again to ensure selected value is retained
+                await fetchAndPopulateSubcontractors(recordId);
             }
         } catch (error) {
             console.error("❌ Error fetching job details:", error);
         }
     }
+    
+    
     
     
     
@@ -397,42 +363,43 @@ document.addEventListener("DOMContentLoaded", async function () {
         const updatedFields = {};
         const inputs = document.querySelectorAll("input:not([disabled]), textarea:not([disabled]), select:not([disabled])");
     
-        console.log("📋 Found input elements:", inputs); // Debugging
-    
         inputs.forEach(input => {
-            const fieldName = input.getAttribute("data-field"); // Ensure field is mapped to Airtable
+            let fieldName = input.getAttribute("data-field");
     
             if (fieldName) {
                 let value;
     
-                // Handle checkboxes properly
                 if (input.type === "checkbox") {
                     value = input.checked;
-                }
-                // Handle number inputs correctly
-                else if (input.type === "number") {
+                } else if (input.tagName === "SELECT") {
                     value = input.value.trim();
-                    value = value !== "" ? parseFloat(value) : null; // Convert to float, allow null
-                }
-                // Handle dropdowns
-                else if (input.tagName === "SELECT") {
-                    value = input.value;
-                }
-                // Handle all other fields
-                else {
+    
+                    // ✅ Skip empty select fields
+                    if (value === "" || value === "undefined") {
+                        console.warn(`⚠️ Skipping empty select field: ${fieldName}`);
+                        return;
+                    }
+    
+                    // ✅ Ensure value is in the allowed options
+                    const allowedOptions = {
+                        "Billable/ Non Billable": ["Billable", "Nonbillable"],
+                        "Homeowner Builder pay": ["Homeowner", "Subcontractor", "Builder"]
+                    };
+    
+                    if (allowedOptions[fieldName] && !allowedOptions[fieldName].includes(value)) {
+                        console.error(`❌ Invalid option for ${fieldName}: "${value}"`);
+                        return; // Skip invalid options
+                    }
+                } else {
                     value = input.value.trim();
+                    if (value === "") return; // Skip empty text fields
                 }
     
-                console.log(`📌 Field Detected: ${fieldName}, Value: "${value}"`);
-    
-                // Ensure only non-empty fields are added
-                if (value !== null && value !== "") {
-                    updatedFields[fieldName] = value;
-                }
+                updatedFields[fieldName] = value;
             }
         });
     
-        console.log("📌 Final Fields to be Updated:", updatedFields);
+        console.log("📌 Final Fields to be Updated:", JSON.stringify(updatedFields, null, 2));
     
         if (Object.keys(updatedFields).length === 0) {
             console.warn("⚠️ No valid fields found to update.");
@@ -444,15 +411,18 @@ document.addEventListener("DOMContentLoaded", async function () {
             await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId, updatedFields);
             console.log("✅ Airtable record updated successfully.");
             alert("Job details saved successfully!");
-    
-            // Update UI dynamically
-            updateUIAfterSave(recordId, updatedFields);
-    
         } catch (error) {
-            console.error("❌ Error updating Airtable record:", error);
+            console.error("❌ Error updating Airtable:", error);
             alert("Error saving job details. Please try again.");
         }
     });
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -846,20 +816,24 @@ document.addEventListener("DOMContentLoaded", async function () {
         return sharedUrl;
     }
     
+    document.getElementById("subcontractor-dropdown").addEventListener("change", function () {
+        console.log("📌 Subcontractor Selected:", this.value);
+    });
     
     
     
     
-    // ✅ Populate Dropdown with Sorted Subcontractors
     function populateSubcontractorDropdown(subcontractors) {
         console.log("📌 Populating the subcontractor dropdown...");
-    
+        
         const dropdown = document.getElementById("subcontractor-dropdown");
-    
         if (!dropdown) {
             console.error("❌ Subcontractor dropdown element not found.");
             return;
         }
+    
+        // Get current selected value (if any)
+        const currentSelection = dropdown.getAttribute("data-selected") || dropdown.value;
     
         dropdown.innerHTML = '<option value="">Select a Subcontractor...</option>'; // Reset dropdown
     
@@ -868,15 +842,35 @@ document.addEventListener("DOMContentLoaded", async function () {
             return;
         }
     
+        let existingFound = false;
+    
         subcontractors.forEach(option => {
             const optionElement = document.createElement("option");
             optionElement.value = option.name;
             optionElement.textContent = `${option.name} (${option.vanirOffice})`;
+    
+            // If current selection exists in the new list, mark it as selected
+            if (option.name === currentSelection) {
+                optionElement.selected = true;
+                existingFound = true;
+            }
+    
             dropdown.appendChild(optionElement);
         });
     
+        // If current selection does not exist in new options, append it
+        if (currentSelection && !existingFound) {
+            console.log(`🔄 Adding previously selected subcontractor: ${currentSelection}`);
+            const existingOption = document.createElement("option");
+            existingOption.value = currentSelection;
+            existingOption.textContent = `${currentSelection} (Previously Selected)`;
+            existingOption.selected = true;
+            dropdown.appendChild(existingOption);
+        }
+    
         console.log("✅ Subcontractor dropdown populated successfully.");
     }
+    
     
     
     

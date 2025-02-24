@@ -94,6 +94,12 @@ input:disabled {
     transform: scale(1.05);
 }
 
+label[for="field-status"],
+#field-status {
+    display: none;
+}
+
+
 .back-button:active {
     transform: scale(0.95);
     background-color: #004494;

@@ -41,53 +41,60 @@
 <input type="text" id="dow-completed" data-field="DOW to be Completed">
 
 <label for="subcontractor-dropdown">Select a Subcontractor:</label>
-<select id="subcontractor-dropdown">
-    <option value="">Fetching subcontractors...</option>
+<select id="subcontractor-dropdown" data-field="Subcontractor">
+    <option value="">Select a Subcontractor...</option>
 </select>
+
+
 
 
 <div id="additional-fields-container">
     <div class="form-group">
-      <label for="billable-status">Billable Status</label>
-      <select id="billable-status" name="billable-status">
-        <option value="nonbillable">Nonbillable</option>
-        <option value="billable">Billable</option>
-      </select>
+        <label for="billable-status">Billable Status</label>
+        <select id="billable-status" name="billable-status" data-field="Billable/ Non Billable">
+            <option value="Billable">Billable</option>
+            <option value="Non Billable">Non Billable</option>
+        </select>
+        
     </div>
-  
+
     <div class="form-group">
-      <label for="homeowner-builder">Homeowner Builder Pay</label>
-      <select id="homeowner-builder" name="homeowner-builder">
-        <option value="homeowner">Homeowner</option>
-        <option value="builder">Builder</option>
-      </select>
+        <label for="homeowner-builder">Homeowner Builder Pay</label>
+<select id="homeowner-builder" name="homeowner-builder" data-field="Homeowner Builder pay">
+    <option value="Homeowner">Homeowner</option>
+    <option value="Subcontractor">Subcontractor</option>
+    <option value="Builder">Builder</option>
+</select>
+
     </div>
-  
+
     <div class="form-group">
-      <label for="billable-reason">Billable Reason (If Billable)</label>
-      <select id="billable-reason" name="billable-reason">
-        <option value="anotherTradeDamagedWork">Another Trade Damaged Work</option>
-        <option value="homeownerDamage">Homeowner Damage</option>
-        <option value="framingIssue">Framing Issue</option>
-        <option value="weather">Weather</option>
-      </select>
+        <label for="billable-reason">Billable Reason (If Billable)</label>
+        <select id="billable-reason" name="billable-reason" data-field="Billable Reason (If Billable)">
+            <option value="anotherTradeDamagedWork">Another Trade Damaged Work</option>
+            <option value="Homeowner Damage">Homeowner Damage</option>
+            <option value="Framing Issue">Framing Issue</option>
+            <option value="Weather">Weather</option>
+        </select>
     </div>
-  
+
     <div class="form-group">
         <label>Field Review Needed:</label>
-        <input type="checkbox" id="field-review-needed">
-      </div>
-
+        <input type="checkbox" id="field-review-needed" data-field="Field Review Needed">
+    </div>
 
     <div class="form-group">
         <label for="subcontractor-payment">Subcontractor Payment</label>
-        <input type="number" id="subcontractor-payment" name="subcontractor-payment" step="0.01" min="0" placeholder="$0.00">
-      </div>
+        <input type="number" id="subcontractor-payment" name="subcontractor-payment" step="0.01" min="0" placeholder="$0.00" data-field="Subcontractor Payment">
+    </div>
+    
+    
 
-<div class="form-group">
-    <label for="materials-needed">Materials Needed</label>
-    <textarea id="materials-needed" name="materials-needed"></textarea>
-  </div>
+    <div class="form-group">
+        <label for="materials-needed">Materials Needed</label>
+        <textarea id="materials-needed" name="materials-needed" data-field="Materials Needed"></textarea>
+    </div>
+
 
             <h3>Picture(s) of Issue:</h3>
             <div id="issue-pictures"></div>
