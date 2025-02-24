@@ -1142,15 +1142,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     field: 'Lot Number and Community/Neighborhood', 
                     value: fields['Lot Number and Community/Neighborhood'] || 'N/A', 
                     jobDetailsLink: true  // ✅ Define jobDetailsLink here
-                },
-                                { field: 'Homeowner Name', value: fields['Homeowner Name'] || 'N/A' },
-                { field: 'Address', value: fields['Address'] || 'N/A', directions: true },
-                { field: 'Description of Issue', value: fields['Description of Issue'] ? fields['Description of Issue'].replace(/<\/?[^>]+(>|$)/g, "") : '' },       
-                { field: 'Contact Email', value: fields['Contact Email'] || 'N/A', email: true },
-                { field: 'Completed  Pictures', value: fields['Completed  Pictures'] || [], image: true, imageField: 'Completed  Pictures' },
-                { field: 'DOW to be Completed', value: fields['DOW to be Completed'] || '', editable: true },
-
-                { field: 'Job Completed', value: fields['Job Completed'] || false, checkbox: true }
+                }
+                    
             ] : [
                 { field: 'b', value: fields['b'] || 'N/A', link: true },  // Keep only this "Branch" entry
                 { field: 'field tech', value: fields['field tech'] || '', editable: false },
@@ -1158,50 +1151,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     field: 'Lot Number and Community/Neighborhood', 
                     value: fields['Lot Number and Community/Neighborhood'] || 'N/A', 
                     jobDetailsLink: true  // ✅ Define jobDetailsLink here
-                },
-                                { field: 'Address', value: fields['Address'] || 'N/A', directions: true },
-                { field: 'Homeowner Name', value: fields['Homeowner Name'] || 'N/A' },
-                { field: 'Contact Email', value: fields['Contact Email'] || 'N/A', email: true },
-                { field: 'Description of Issue', value: fields['Description of Issue'] ? fields['Description of Issue'].replace(/<\/?[^>]+(>|$)/g, "") : '' },
-
-                {
-                    field: 'Picture(s) of Issue',
-                    value: fields['Picture(s) of Issue'] || [],
-                    image: true,
-                    link: true,
-                    imageField: 'Picture(s) of Issue'
-                },
-                                { field: 'DOW to be Completed', value: fields['DOW to be Completed'] || '', editable: true },
-                { field: 'Materials Needed', value: fields['Materials Needed'] || '', editable: true },
-                { field: 'Subcontractor', value: fields['Subcontractor'] || '', dropdown: true, options: subOptions },
-                {
-                    field: 'Subcontractor Payment',
-                    value: typeof fields['Subcontractor Payment'] === 'number'
-                        ? `$${new Intl.NumberFormat('en-US', { style: 'decimal', minimumFractionDigits: 2 }).format(fields['Subcontractor Payment'])}`
-                        : '', // Default to $0.00 if not a valid number
-                    editable: true
-                },
-                { field: 'Subcontractor Not Needed', value: fields['Subcontractor Not Needed'] || false, checkbox: true },
-
-                { field: 'Subcontractor Not Needed', value: fields['Subcontractor Not Needed'] || false, checkbox: true },
-                { 
-                    field: 'Billable/ Non Billable', 
-                    value: fields['Billable/ Non Billable'] || '', 
-                    dropdown: true, 
-                  },
-
-                  { 
-                    field: 'Homeowner Builder pay', 
-                    value: fields['Homeowner Builder pay'] || '', 
-                    dropdown: true, 
-                  },
-                  { 
-                    field: 'Billable Reason (If Billable)', 
-                    value: fields['Billable Reason (If Billable)'] || '', 
-                    dropdown: true 
-                  },
-
-                  { field: 'Field Tech Reviewed', value: fields['Field Tech Reviewed'] || false, checkbox: true }
+                }
+                               
             ];
 
 
