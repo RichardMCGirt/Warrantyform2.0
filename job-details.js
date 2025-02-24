@@ -14,8 +14,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         return;
     }
 
-    let dropboxAccessToken = null;
-
     try {
         console.log("✅ Fetching Job Details...");
 
@@ -24,15 +22,20 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log("📋 Primary Data Fetched:", primaryData);
         populatePrimaryFields(primaryData.fields);
 
-        
-
         // ✅ Fetch Dropbox Token
         dropboxAccessToken = await fetchDropboxToken();
-        console.log("🔑 Dropbox Access Token:", dropboxAccessToken);
+        
+        if (!dropboxAccessToken) {
+            console.error("❌ Dropbox token is missing. Uploads will not work.");
+        } else {
+            console.log("🔑 Dropbox Access Token:", dropboxAccessToken);
+        }
 
         // ✅ Fetch Subcontractors Based on `b` Value and Populate Dropdown
         console.log("✅ Fetching subcontractors based on branch `b`...");
         await fetchAndPopulateSubcontractors(recordId);
+        await loadJobDetails(recordId);
+
 
     } catch (error) {
         console.error("❌ Error loading job details:", error);
@@ -43,34 +46,54 @@ document.addEventListener("DOMContentLoaded", async function () {
     // ✅ Save Job Details
     document.getElementById("save-job").addEventListener("click", async function () {
         console.log("🔄 Save button clicked. Collecting all field values...");
-    
-        // Get all input and select elements inside the form or job details container
-        const inputs = document.querySelectorAll("#job-details-container input, #job-details-container select, #job-details-container textarea");
-    
+        
+        // Collect all enabled inputs, textareas, and select elements
+        const inputs = document.querySelectorAll("input:not([disabled]), textarea:not([disabled]), select:not([disabled])");
         const updatedFields = {};
     
-        // Loop through inputs and store values in updatedFields object
+        // Iterate over each element and extract its value based on type
         inputs.forEach(input => {
-            const fieldName = input.getAttribute("data-field"); // Assuming each input has a "data-field" attribute mapping to Airtable fields
+            const fieldName = input.getAttribute("data-field");
             if (fieldName) {
-                updatedFields[fieldName] = input.value.trim();
+                let value;
+                if (input.type === "checkbox") {
+                    value = input.checked;
+                } else if (input.type === "number") {
+                    value = input.value.trim();
+                    value = value !== "" ? parseFloat(value) : null;
+                } else {
+                    value = input.value.trim();
+                }
+    
+                // Only add the field if it has a valid (non-null/non-empty) value
+                if (value !== null && value !== "") {
+                    updatedFields[fieldName] = value;
+                }
             }
         });
     
-        console.log("📌 Fields to be updated:", updatedFields);
+        console.log("📌 Final Fields to be Updated:", updatedFields);
     
         if (Object.keys(updatedFields).length === 0) {
             console.warn("⚠️ No valid fields found to update.");
+            alert("No changes detected.");
             return;
         }
     
+        // Send the data back to Airtable using your defined update function
         try {
-            await updateAirtableRecord(airtableTableName, recordId, updatedFields);
+            await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId, updatedFields);
             console.log("✅ Airtable record updated successfully.");
+            alert("Job details saved successfully!");
+    
+            // Optionally, update the UI dynamically
+            updateUIAfterSave(recordId, updatedFields);
         } catch (error) {
             console.error("❌ Error updating Airtable record:", error);
+            alert("Error saving job details. Please try again.");
         }
     });
+    
     
 
     // ✅ Handle Dropbox Image Upload
@@ -181,37 +204,60 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     
      
+    async function loadJobDetails(recordId) {
+        try {
+            console.log("📡 Fetching job details for:", recordId);
+            const jobData = await fetchAirtableRecord(airtableTableName, recordId);
+    
+            if (jobData && jobData.fields) {
+                console.log("✅ Job data fetched:", jobData.fields);
+    
+                // Display images in UI
+                displayImages(jobData.fields["Picture(s) of Issue"], "issue-pictures");
+                displayImages(jobData.fields["Completed Pictures"], "completed-pictures");
+            }
+        } catch (error) {
+            console.error("❌ Error fetching job details:", error);
+        }
+    }
     
 
     // 🔹 Display Images
     function displayImages(images, containerId) {
         const container = document.getElementById(containerId);
-        container.innerHTML = "";
-        
-        console.log("Images array:", images); // Debug log to verify data
-        
+        container.innerHTML = ""; // Clear existing images
+    
+        console.log("📡 Fetching images for display:", images);
+    
         if (images && images.length > 0) {
-          images.forEach(file => {
-            console.log("Processing file:", file); // Debug each file
-            
-            // If the URL ends with '.pdf', create an embed element; otherwise, an image.
-            if (file.url.toLowerCase().endsWith('.pdf')) {
-              const embedElement = document.createElement("embed");
-              embedElement.src = file.url;
-              embedElement.type = "application/pdf";
-              embedElement.width = "100%";
-              embedElement.height = "600px";
-              container.appendChild(embedElement);
-            } else {
-              const imgElement = document.createElement("img");
-              imgElement.src = file.url;
-              imgElement.classList.add("uploaded-image");
-              container.appendChild(imgElement);
-            }
-          });
+            images.forEach(file => {
+                console.log("🖼️ Processing file:", file);
+    
+                // If it's a PDF, embed it
+                if (file.url.toLowerCase().endsWith('.pdf')) {
+                    const embedElement = document.createElement("embed");
+                    embedElement.src = file.url;
+                    embedElement.type = "application/pdf";
+                    embedElement.width = "100%";
+                    embedElement.height = "600px";
+                    container.appendChild(embedElement);
+                } 
+                // Otherwise, treat as an image
+                else {
+                    const imgElement = document.createElement("img");
+                    imgElement.src = file.url;
+                    imgElement.classList.add("uploaded-image");
+                    imgElement.style.maxWidth = "100%"; // Ensure proper sizing
+                    imgElement.style.margin = "10px"; // Add spacing
+                    container.appendChild(imgElement);
+                }
+            });
+        } else {
+            console.warn("⚠️ No images found.");
+            container.innerHTML = "<p>No images available.</p>";
         }
-      }
-      
+    }
+    
     
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -317,57 +363,183 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     
 
-    // 🔹 Fetch Dropbox Token
+    // 🔹 Fetch Dropbox Token from Airtable
     async function fetchDropboxToken() {
         try {
-            const response = await fetch(`https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName2}`, {
+            const url = `https://api.airtable.com/v0/${airtableBaseId}/tbl6EeKPsNuEvt5yJ?maxRecords=1&view=viwMlo3nM8JDCIMyV`;
+    
+            console.log("🔄 Fetching latest Dropbox credentials from Airtable...");
+            const response = await fetch(url, {
                 headers: { Authorization: `Bearer ${airtableApiKey}` }
             });
-
-            if (!response.ok) throw new Error("Error fetching Dropbox credentials");
-
+    
+            if (!response.ok) {
+                throw new Error(`❌ Error fetching Dropbox token: ${response.statusText}`);
+            }
+    
             const data = await response.json();
+            console.log("✅ Dropbox token response:", data);
+    
+            // Extract fields
             const record = data.records.find(rec => rec.fields["Dropbox Token"]);
-
-            return record ? record.fields["Dropbox Token"] : null;
+            const refreshToken = data.records.find(rec => rec.fields["Dropbox Refresh Token"]);
+            const appKey = data.records.find(rec => rec.fields["Dropbox App Key"]);
+            const appSecret = data.records.find(rec => rec.fields["Dropbox App Secret"]);
+    
+            if (!appKey || !appSecret) {
+                console.error("❌ Dropbox App Key or Secret is missing in Airtable.");
+                return null;
+            }
+    
+            dropboxAppKey = appKey.fields["Dropbox App Key"];
+            dropboxAppSecret = appSecret.fields["Dropbox App Secret"];
+    
+            if (record && record.fields["Dropbox Token"]) {
+                console.log("🔑 New Dropbox Token Retrieved:", record.fields["Dropbox Token"]);
+                dropboxAccessToken = record.fields["Dropbox Token"];
+    
+                if (refreshToken && refreshToken.fields["Dropbox Refresh Token"]) {
+                    console.log("🔄 Found Dropbox Refresh Token. Refreshing...");
+                    return await refreshDropboxAccessToken(
+                        refreshToken.fields["Dropbox Refresh Token"], 
+                        dropboxAppKey, 
+                        dropboxAppSecret
+                    );
+                }
+    
+                return dropboxAccessToken;
+            } else {
+                console.warn("⚠️ No Dropbox Token found in Airtable.");
+                return null;
+            }
         } catch (error) {
-            console.error("Dropbox token fetch error:", error);
+            console.error("❌ Error fetching Dropbox token:", error);
             return null;
         }
     }
+    
+
+    async function refreshDropboxAccessToken(refreshToken, dropboxAppKey, dropboxAppSecret) {
+        console.log("🔄 Refreshing Dropbox Access Token...");
+        const dropboxAuthUrl = "https://api.dropboxapi.com/oauth2/token";
+        
+        if (!dropboxAppKey || !dropboxAppSecret) {
+            console.error("❌ Dropbox App Key or Secret is missing. Cannot refresh token.");
+            return null;
+        }
+    
+        const params = new URLSearchParams();
+        params.append("grant_type", "refresh_token");
+        params.append("refresh_token", refreshToken);
+        params.append("client_id", dropboxAppKey);
+        params.append("client_secret", dropboxAppSecret);
+    
+        try {
+            const response = await fetch(dropboxAuthUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: params
+            });
+    
+            if (!response.ok) {
+                const errorResponse = await response.json();
+                console.error(`❌ Error refreshing Dropbox token: ${errorResponse.error_summary}`);
+                return null;
+            }
+    
+            const data = await response.json();
+            console.log("✅ New Dropbox Access Token:", data.access_token);
+    
+            // Store the new access token
+            dropboxAccessToken = data.access_token;
+            return dropboxAccessToken;
+        } catch (error) {
+            console.error("❌ Error refreshing Dropbox access token:", error);
+            return null;
+        }
+    }
+    
+    async function fetchCurrentImagesFromAirtable(recordId, targetField) {
+        const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}/${recordId}`;
+    
+        try {
+            console.log(`📡 Fetching existing images from Airtable field: ${targetField}`);
+            const response = await fetch(url, {
+                headers: { Authorization: `Bearer ${airtableApiKey}` }
+            });
+    
+            if (!response.ok) {
+                console.error(`❌ Error fetching record: ${response.status} ${response.statusText}`);
+                return [];
+            }
+    
+            const data = await response.json();
+            return data.fields[targetField] ? data.fields[targetField] : [];
+        } catch (error) {
+            console.error("❌ Error fetching current images from Airtable:", error);
+            return [];
+        }
+    }
+    
+    
+    
 
     // 🔹 Dropbox Image Upload
     async function uploadToDropbox(files, targetField) {
         if (!dropboxAccessToken) {
-            console.error("Dropbox token is missing.");
+            console.error("❌ Dropbox token is missing.");
             return;
         }
-
-        const uploadedUrls = [];
+    
+        console.log(`📂 Uploading ${files.length} file(s) to Dropbox for field: ${targetField}`);
+    
+        let existingImages = await fetchCurrentImagesFromAirtable(recordId, targetField) || [];
+        const uploadedUrls = [...existingImages]; // Preserve existing images
+    
         for (const file of files) {
             try {
                 const dropboxUrl = await uploadFileToDropbox(file);
-                if (dropboxUrl) uploadedUrls.push({ url: dropboxUrl });
+                if (dropboxUrl) {
+                    uploadedUrls.push({ url: dropboxUrl }); // Append new file URLs
+                }
             } catch (error) {
-                console.error("Error uploading to Dropbox:", error);
+                console.error("❌ Error uploading to Dropbox:", error);
             }
         }
-
+    
+        console.log("✅ Final file list to save in Airtable:", uploadedUrls);
+    
         if (uploadedUrls.length > 0) {
             await updateAirtableRecord(airtableTableName, recordId, { [targetField]: uploadedUrls });
+    
+            // 🎯 Refresh UI to show newly uploaded images
+            displayImages(uploadedUrls, targetField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
         }
     }
+    
+    
+    
 
     // 🔹 Upload File to Dropbox
     async function uploadFileToDropbox(file) {
+        console.log("🚀 Starting file upload to Dropbox...");
+    
+        if (!dropboxAccessToken) {
+            console.error("❌ Dropbox Access Token is missing.");
+            return null;
+        }
+    
         const dropboxUploadUrl = "https://content.dropboxapi.com/2/files/upload";
-        const path = `/uploads/${file.name}`;
-
+        const path = `/uploads/${encodeURIComponent(file.name)}`;
+        console.log(`📤 Uploading file to Dropbox: ${file.name} at path: ${path}`);
+    
         try {
             const response = await fetch(dropboxUploadUrl, {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${dropboxAccessToken}`,
+                    "Authorization": `Bearer ${dropboxAccessToken}`,
                     "Dropbox-API-Arg": JSON.stringify({
                         path: path,
                         mode: "add",
@@ -378,15 +550,42 @@ document.addEventListener("DOMContentLoaded", async function () {
                 },
                 body: file
             });
-
-            if (!response.ok) throw new Error("Error uploading file to Dropbox.");
+    
+            console.log(`📡 Dropbox file upload response status: ${response.status}`);
+    
+            if (!response.ok) {
+                const errorResponse = await response.json();
+                console.error("❌ Error uploading file to Dropbox:", errorResponse);
+    
+                // Check if the error is due to an expired access token
+                if (errorResponse.error && errorResponse.error[".tag"] === "expired_access_token") {
+                    console.warn("⚠️ Dropbox access token has expired. Fetching a new token...");
+                    
+                    // Fetch new token and retry
+                    dropboxAccessToken = await fetchDropboxToken();
+                    
+                    if (dropboxAccessToken) {
+                        console.log("🔄 Retrying file upload with refreshed token...");
+                        return await uploadFileToDropbox(file); // Retry upload with new token
+                    } else {
+                        console.error("❌ Failed to refresh Dropbox token. Upload cannot proceed.");
+                        return null;
+                    }
+                }
+    
+                return null;
+            }
+    
             const data = await response.json();
+            console.log("✅ File uploaded to Dropbox successfully:", data);
             return await getDropboxSharedLink(data.path_lower);
         } catch (error) {
-            console.error("Dropbox upload error:", error);
+            console.error("❌ Error during file upload to Dropbox:", error);
             return null;
         }
     }
+    
+    
 
     // 🔹 Get Dropbox Shared Link
     async function getDropboxSharedLink(filePath) {
@@ -405,15 +604,24 @@ document.addEventListener("DOMContentLoaded", async function () {
                     }
                 })
             });
-
-            if (!response.ok) throw new Error("Error creating Dropbox shared link.");
+    
+            if (response.status === 409) {
+                console.warn("⚠️ Shared link already exists. Fetching existing link...");
+                return await getExistingDropboxLink(filePath);
+            }
+    
+            if (!response.ok) {
+                throw new Error("❌ Error creating Dropbox shared link.");
+            }
+    
             const data = await response.json();
-            return data.url.replace("?dl=0", "?raw=1");
+            return convertToDirectLink(data.url);
         } catch (error) {
             console.error("Dropbox link error:", error);
             return null;
         }
     }
+    
 
     async function fetchAndPopulateSubcontractors(recordId) {
         console.log("🚀 Fetching branch `b` for record:", recordId);
@@ -484,9 +692,46 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     
     
+    async function getExistingDropboxLink(filePath) {
+        const url = "https://api.dropboxapi.com/2/sharing/list_shared_links";
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${dropboxAccessToken}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    path: filePath,
+                    direct_only: true
+                })
+            });
+    
+            if (!response.ok) {
+                throw new Error(`❌ Error fetching existing shared link: ${response.statusText}`);
+            }
+    
+            const data = await response.json();
+            if (data.links && data.links.length > 0) {
+                return convertToDirectLink(data.links[0].url);
+            } else {
+                console.error("❌ No existing shared link found.");
+                return null;
+            }
+        } catch (error) {
+            console.error("Dropbox existing link fetch error:", error);
+            return null;
+        }
+    }
     
        
-   
+    function convertToDirectLink(sharedUrl) {
+        if (sharedUrl.includes("dropbox.com")) {
+            return sharedUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("?dl=0", "?raw=1");
+        }
+        return sharedUrl;
+    }
+    
     
     
     

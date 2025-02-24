@@ -9,7 +9,12 @@ body {
     align-items: center;
 }
 
-
+#description {
+    background-color: transparent !important;
+    max-width: 50% !important;
+  }
+  
+  
 
 /* Navigation */
 nav {
@@ -68,6 +73,7 @@ textarea {
 input:disabled {
     background: #e9ecef;
     cursor: not-allowed;
+    max-width: 60%;
 }
 
 .back-button {
