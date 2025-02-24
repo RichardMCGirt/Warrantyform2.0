@@ -802,10 +802,8 @@ document.body.appendChild(fileInput);
         mainContent.style.display = 'none';
         secondaryContent.style.display = 'none';
     
-        originalValues = { /* Populate this with fetched data */ };
-    
+        originalValues = {};
         let loadProgress = 0;
-     
     
         try {
             let allRecords = [];
@@ -816,14 +814,13 @@ document.body.appendChild(fileInput);
                 subOptions = await fetchAirtableSubOptionsFromDifferentTable() || [];
             } catch (error) {
                 console.error('Error fetching sub options:', error);
-                subOptions = []; // Continue with an empty subOptions array
+                subOptions = [];
             }
     
             // Fetch all records and store original values
             do {
                 const data = await fetchData(offset);
     
-                // Ensure data.records exists and is an array
                 if (data && Array.isArray(data.records)) {
                     allRecords = allRecords.concat(data.records);
     
@@ -833,38 +830,48 @@ document.body.appendChild(fileInput);
                     });
                 } else {
                     console.error('Error: Invalid data structure or no records found.');
-                    break; // Exit loop if no valid data is fetched
+                    break;
                 }
                 offset = data.offset;
             } while (offset);
     
-            // Filter and sort records for primary and secondary views
+            // Fetch all field managers and map their IDs to names
+            const fieldManagerMap = await fetchFieldManagerNames();
+            
+            // Assign readable names instead of record IDs
+            allRecords.forEach(record => {
+                const managerId = record.fields['Field Manager Assigned']?.[0] || null;
+                record.displayFieldManager = managerId && fieldManagerMap[managerId] ? fieldManagerMap[managerId] : 'Unknown';
+            });
+    
+            // Separate into primary and secondary records
             const primaryRecords = allRecords.filter(record =>
                 record.fields['Status'] === 'Field Tech Review Needed' &&
-                !record.fields['Field Tech Reviewed'] // Checks if the checkbox is not checked
+                !record.fields['Field Tech Reviewed']
             );
     
             const secondaryRecords = allRecords.filter(record =>
-                record.fields['Status'] === 'Scheduled- Awaiting Field'  // Ensures 'Job Completed' is unchecked
+                record.fields['Status'] === 'Scheduled- Awaiting Field'
             );
     
-      // Sort primary records by "Field Manager Assigned" alphabetically
-primaryRecords.sort((a, b) => {
-    const valueA = String(a.fields['Field Manager Assigned'] || '').toLowerCase();
-    const valueB = String(b.fields['Field Manager Assigned'] || '').toLowerCase();
-    return valueA.localeCompare(valueB);
-});
-
-// Sort secondary records by "Field Manager Assigned" alphabetically
-secondaryRecords.sort((a, b) => {
-    const valueA = String(a.fields['Field Manager Assigned'] || '').toLowerCase();
-    const valueB = String(b.fields['Field Manager Assigned'] || '').toLowerCase();
-    return valueA.localeCompare(valueB);
-});
-
-
+            // 🔥 SORT PRIMARY RECORDS ALPHABETICALLY BY FIELD MANAGER NAME
+            primaryRecords.sort((a, b) => {
+                const nameA = a.displayFieldManager.toLowerCase();
+                const nameB = b.displayFieldManager.toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
     
-            // Display the primary and secondary records in your tables with vendor options
+            // 🔥 SORT SECONDARY RECORDS ALPHABETICALLY BY FIELD MANAGER NAME
+            secondaryRecords.sort((a, b) => {
+                const nameA = a.displayFieldManager.toLowerCase();
+                const nameB = b.displayFieldManager.toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+    
+            console.log("✅ Sorted Primary Records:", primaryRecords.map(r => r.displayFieldManager));
+            console.log("✅ Sorted Secondary Records:", secondaryRecords.map(r => r.displayFieldManager));
+    
+            // Display the primary and secondary records in your tables
             await displayData(primaryRecords, '#airtable-data', false, vendorOptions);
             await displayData(secondaryRecords, '#feild-data', true, subOptions);
     
@@ -897,6 +904,54 @@ secondaryRecords.sort((a, b) => {
             syncTableWidths();
         }
     }
+    
+    
+    /**
+     * Fetch and map "Field Manager Assigned" from linked records
+     */
+    async function populateFieldManagerNames(records) {
+        // Fetch all field managers once
+        const managerIdMap = await fetchFieldManagerNames();
+    
+        // Assign display names to records
+        records.forEach(record => {
+            const managerId = record.fields['Field Manager Assigned']?.[0] || null;
+            record.displayFieldManager = managerIdMap[managerId] || 'Unknown'; // Default if not found
+        });
+    
+        console.log("✅ Assigned Field Manager Display Names:", records.map(r => r.displayFieldManager));
+    }
+    
+    
+    /**
+     * Fetch Field Manager names from Airtable based on record IDs
+     */
+    async function fetchFieldManagerNames() {
+        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/tblHdf9KskO1auw3l`; // Use the correct Table ID
+    
+        try {
+            const response = await fetch(url, {
+                headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
+            });
+    
+            if (!response.ok) throw new Error(`Error fetching field manager names: ${response.statusText}`);
+    
+            const data = await response.json();
+            const idMap = {};
+    
+            data.records.forEach(manager => {
+                idMap[manager.id] = manager.fields['Full Name']; // Assuming the name field is "Name"
+            });
+    
+            console.log("📋 Field Manager ID to Name Map:", idMap);
+            return idMap;
+        } catch (error) {
+            console.error("❌ Error fetching field manager names:", error);
+            return {};
+        }
+    }
+    
+    
 
     
     
@@ -1120,11 +1175,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
          // Sort records alphabetically by field 'b'
-    records.sort((a, b) => {
-        const valueA = a.fields['b'] ? a.fields['b'].toLowerCase() : '';
-        const valueB = b.fields['b'] ? b.fields['b'].toLowerCase() : '';
-        return valueA.localeCompare(valueB);
-    });
+   // Sort records alphabetically by 'Field Tech'
+records.sort((a, b) => {
+    const valueA = a.fields['Field Tech'] ? a.fields['Field Tech'].toLowerCase() : '';
+    const valueB = b.fields['Field Tech'] ? b.fields['Field Tech'].toLowerCase() : '';
+    return valueA.localeCompare(valueB);
+});
+
         
         // Populate rows based on the provided configuration
         records.forEach(record => {
