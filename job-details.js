@@ -213,25 +213,42 @@ document.addEventListener("DOMContentLoaded", async function () {
                 console.log("✅ Job data fetched:", jobData.fields);
     
                 // Display images in UI
-                displayImages(jobData.fields["Picture(s) of Issue"], "issue-pictures");
-                displayImages(jobData.fields["Completed Pictures"], "completed-pictures");
+                displayImages(jobData.fields["Picture(s) of Issue"], "issue-pictures", "Picture(s) of Issue");
+                displayImages(jobData.fields["Completed Pictures"], "completed-pictures", "Completed Pictures");
             }
         } catch (error) {
             console.error("❌ Error fetching job details:", error);
         }
     }
     
+    
+    
 
-    // 🔹 Display Images
-    function displayImages(images, containerId) {
+    function displayImages(images, containerId, targetField) {
         const container = document.getElementById(containerId);
         container.innerHTML = ""; // Clear existing images
     
         console.log("📡 Fetching images for display:", images);
     
         if (images && images.length > 0) {
-            images.forEach(file => {
+            images.forEach((file, index) => {
                 console.log("🖼️ Processing file:", file);
+    
+                const wrapperDiv = document.createElement("div");
+                wrapperDiv.classList.add("image-wrapper");
+                wrapperDiv.style.display = "inline-block";
+                wrapperDiv.style.margin = "10px";
+                wrapperDiv.style.position = "relative";
+                wrapperDiv.style.textAlign = "center";
+    
+                // Create checkbox for selecting image
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.value = file.url;
+                checkbox.classList.add("image-checkbox");
+                checkbox.style.position = "absolute";
+                checkbox.style.top = "5px";
+                checkbox.style.left = "5px";
     
                 // If it's a PDF, embed it
                 if (file.url.toLowerCase().endsWith('.pdf')) {
@@ -239,24 +256,120 @@ document.addEventListener("DOMContentLoaded", async function () {
                     embedElement.src = file.url;
                     embedElement.type = "application/pdf";
                     embedElement.width = "100%";
-                    embedElement.height = "600px";
-                    container.appendChild(embedElement);
+                    embedElement.height = "200px";
+                    wrapperDiv.appendChild(embedElement);
                 } 
                 // Otherwise, treat as an image
                 else {
                     const imgElement = document.createElement("img");
                     imgElement.src = file.url;
                     imgElement.classList.add("uploaded-image");
-                    imgElement.style.maxWidth = "100%"; // Ensure proper sizing
-                    imgElement.style.margin = "10px"; // Add spacing
-                    container.appendChild(imgElement);
+                    imgElement.style.maxWidth = "200px";
+                    imgElement.style.borderRadius = "5px";
+                    wrapperDiv.appendChild(imgElement);
                 }
+    
+                // Append checkbox to wrapper div
+                wrapperDiv.appendChild(checkbox);
+                container.appendChild(wrapperDiv);
             });
+    
+            // Add "Delete Selected" button if images exist
+            addDeleteButton(containerId, targetField);
         } else {
             console.warn("⚠️ No images found.");
             container.innerHTML = "<p>No images available.</p>";
         }
     }
+
+    async function testFetchImages() {
+        try {
+            const recordData = await fetchAirtableRecord(airtableTableName, recordId);
+            console.log("✅ Airtable Record Data:", recordData);
+    
+            if (recordData.fields["Picture(s) of Issue"]) {
+                console.log("🖼️ Issue Pictures Field Data:", recordData.fields["Picture(s) of Issue"]);
+            } else {
+                console.warn("⚠️ 'Picture(s) of Issue' field is empty or missing.");
+            }
+        } catch (error) {
+            console.error("❌ Error fetching test images from Airtable:", error);
+        }
+    }
+    
+    testFetchImages();
+    
+    
+    
+    function addDeleteButton(containerId, targetField) {
+        const container = document.getElementById(containerId);
+    
+        // Remove existing button to prevent duplicates
+        const existingButton = document.getElementById(`${containerId}-delete-btn`);
+        if (existingButton) {
+            existingButton.remove();
+        }
+    
+        // Create delete button
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete Selected";
+        deleteButton.id = `${containerId}-delete-btn`;
+        deleteButton.style.display = "block";
+        deleteButton.style.margin = "10px auto";
+        deleteButton.style.padding = "8px 12px";
+        deleteButton.style.background = "red";
+        deleteButton.style.color = "white";
+        deleteButton.style.border = "none";
+        deleteButton.style.cursor = "pointer";
+        deleteButton.style.borderRadius = "5px";
+        deleteButton.style.fontSize = "14px";
+    
+        deleteButton.addEventListener("click", () => deleteSelectedImages(targetField, containerId));
+    
+        // Append delete button to container
+        container.appendChild(deleteButton);
+    }
+    
+    async function deleteSelectedImages(targetField, containerId) {
+        console.log(`🗑️ Deleting selected images from: ${targetField}`);
+    
+        // Find selected checkboxes
+        const selectedCheckboxes = document.querySelectorAll(`#${containerId} .image-checkbox:checked`);
+        if (selectedCheckboxes.length === 0) {
+            alert("⚠️ Please select at least one image to delete.");
+            return;
+        }
+    
+        // Get IDs of selected images
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.imageId);
+        console.log("📌 Selected Image IDs to Delete:", selectedIds);
+    
+        // Fetch current images from Airtable
+        let existingImages = await fetchCurrentImagesFromAirtable(recordId, targetField);
+        if (!existingImages) {
+            existingImages = [];
+        }
+    
+        console.log("📸 Current Images in Airtable:", existingImages);
+    
+        // Remove only the selected images by matching `id`
+        const updatedImages = existingImages.filter(img => !selectedIds.includes(img.id));
+        console.log("🔄 Updated Images After Deletion:", updatedImages);
+    
+        try {
+            // Update Airtable with the new image list
+            await updateAirtableRecord(airtableTableName, recordId, { [targetField]: updatedImages });
+    
+            console.log("✅ Selected images deleted successfully!");
+    
+            // Refresh UI
+            displayImages(updatedImages, containerId, targetField);
+        } catch (error) {
+            console.error("❌ Error deleting images from Airtable:", error);
+            alert("Error deleting images. Please try again.");
+        }
+    }
+    
     
     
 
@@ -515,9 +628,10 @@ document.addEventListener("DOMContentLoaded", async function () {
             await updateAirtableRecord(airtableTableName, recordId, { [targetField]: uploadedUrls });
     
             // 🎯 Refresh UI to show newly uploaded images
-            displayImages(uploadedUrls, targetField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
+            displayImages(uploadedUrls, targetField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures", targetField);
         }
     }
+    
     
     
     
