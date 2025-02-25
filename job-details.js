@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const airtableApiKey = window.env.AIRTABLE_API_KEY;
     const airtableBaseId = window.env.AIRTABLE_BASE_ID;
     const airtableTableName = window.env.AIRTABLE_TABLE_NAME;
-    const airtableTableName2 = window.env.AIRTABLE_TABLE_NAME2;
 
     if (!recordId) {
         alert("No job selected.");
@@ -40,12 +39,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     } catch (error) {
         console.error("❌ Error loading job details:", error);
     }   
-
-
-
-   
-    
-    
 
     // ✅ Handle Dropbox Image Upload
     document.getElementById("upload-issue-picture").addEventListener("change", async function (event) {
@@ -102,10 +95,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     
     
-    
-    
-    
-
     // 🔹 Populate Primary Fields
     function populatePrimaryFields(job) {
         setInputValue("job-name", job["Lot Number and Community/Neighborhood"]);
@@ -123,7 +112,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         setInputValue("materials-needed", job["Materials Needed"]);
         setInputValue("subcontractor-payment", job["Subcontractor Payment"]); // ✅ Ensure number is set
     
+        setCheckboxValue("field-review-not-needed", job["Field Review Not Needed"]);
         setCheckboxValue("job-completed", job["Job Completed"]);
+
         setCheckboxValue("field-review-needed", job["Field Review Needed"]);
         setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
     

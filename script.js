@@ -904,6 +904,106 @@ document.body.appendChild(fileInput);
             syncTableWidths();
         }
     }
+
+    async function fetchDataFromAirtable() {
+        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}`;
+        console.log(`📡 Fetching data from Airtable: ${url}`);
+    
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
+                },
+            });
+    
+            if (!response.ok) {
+                console.error(`❌ Error fetching Airtable data: ${response.status} ${response.statusText}`);
+                return { records: [] }; // Return empty array to prevent undefined errors
+            }
+    
+            const data = await response.json();
+            console.log("✅ Data successfully fetched:", data);
+    
+            return data;
+        } catch (error) {
+            console.error("🚨 Error fetching data from Airtable:", error);
+            return { records: [] }; // Return empty array on error
+        }
+    }
+    
+
+    async function populateFilterOptions() {
+        try {
+            console.log("🔄 Fetching data for filter options...");
+    
+            const data = await fetchDataFromAirtable(); // Ensure this function returns data correctly
+            console.log("📥 Data received:", data);
+    
+            if (!data || !Array.isArray(data.records)) {
+                console.error("❌ Error: Expected 'data.records' to be an array but got:", data);
+                return;
+            }
+    
+            // Extract unique filter options
+            const uniqueValues = [...new Set(data.records.map(record => record.fields['Field Tech']))];
+    
+            console.log("📌 Unique Filter Options:", uniqueValues);
+    
+            const filterContainer = document.getElementById("filter-branch");
+            if (!filterContainer) {
+                console.error("❌ 'filter-branch' container not found in DOM.");
+                return;
+            }
+    
+            // Clear existing options
+            filterContainer.innerHTML = "";
+    
+            uniqueValues.forEach(value => {
+                if (!value) return; // Skip empty values
+    
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.value = value;
+                checkbox.id = `filter-${value.replace(/\s+/g, "-").toLowerCase()}`;
+                checkbox.classList.add("filter-checkbox");
+    
+                const label = document.createElement("label");
+                label.htmlFor = checkbox.id;
+                label.textContent = value;
+    
+                filterContainer.appendChild(checkbox);
+                filterContainer.appendChild(label);
+                filterContainer.appendChild(document.createElement("br"));
+            });
+    
+            console.log("✅ Filter options populated successfully.");
+        } catch (error) {
+            console.error("🚨 Error in populateFilterOptions:", error);
+        }
+    }
+    
+    
+    // Call this function when data is ready
+    populateFilterOptions();
+    
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("filter-branch").addEventListener("change", function () {
+            applyFilters();
+        });
+    });
+    
+    function applyFilters() {
+        const selectedTechs = Array.from(document.querySelectorAll(".filter-checkbox:checked"))
+            .map(checkbox => checkbox.value);
+    
+        document.querySelectorAll("#airtable-data tbody tr, #feild-data tbody tr").forEach(row => {
+            const techCell = row.cells[1]; // Assuming the "Field Tech" column is index 1
+            if (techCell) {
+                const tech = techCell.textContent.trim();
+                row.style.display = selectedTechs.length === 0 || selectedTechs.includes(tech) ? "" : "none";
+            }
+        });
+    }
     
     
     /**
@@ -1054,6 +1154,53 @@ document.body.appendChild(fileInput);
         }
     }
 
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("🔄 DOM fully loaded and parsed.");
+    
+        // Select elements
+        const menuToggle = document.getElementById("menu-toggle");
+        const checkboxContainer = document.getElementById("checkbox-container");
+    
+        // Check if elements exist
+        if (!menuToggle) {
+            console.error("❌ 'menu-toggle' button not found. Check if the ID is correct or if the element exists.");
+        } else {
+            console.log("✅ 'menu-toggle' button found.");
+        }
+    
+        if (!checkboxContainer) {
+            console.error("❌ 'checkbox-container' not found. Check if the ID is correct.");
+        } else {
+            console.log("✅ 'checkbox-container' found.");
+        }
+    
+        // Ensure both elements exist before adding the event listener
+        if (menuToggle && checkboxContainer) {
+            console.log("📌 Adding click event listener to 'menu-toggle'");
+    
+            menuToggle.addEventListener("click", function (event) {
+                console.log("🟢 'menu-toggle' clicked! Event triggered.");
+                console.log("📌 Event details:", event);
+    
+                // Toggle visibility
+                checkboxContainer.classList.toggle("hidden");
+    
+                if (checkboxContainer.classList.contains("hidden")) {
+                    console.log("🔴 'checkbox-container' is now hidden.");
+                } else {
+                    console.log("🟢 'checkbox-container' is now visible.");
+                }
+            });
+    
+            console.log("✅ Click event listener added successfully to 'menu-toggle'.");
+        } else {
+            console.error("🚨 Unable to attach event listener: 'menu-toggle' or 'checkbox-container' missing.");
+        }
+    });
+    
+    
+    
+
     async function fetchDataAndInitializeFilter() {
         await fetchAllData(); // Ensure this function populates the tables
         console.log("Data loaded from Airtable.");
@@ -1150,6 +1297,88 @@ document.addEventListener('DOMContentLoaded', () => {
         
         return subOptions;  
     }
+
+    function mergeTableCells(tableSelector, columnIndex) {
+        const table = document.querySelector(tableSelector);
+        if (!table) {
+            console.warn(`⚠️ Table not found: ${tableSelector}`);
+            return;
+        }
+    
+        const rows = table.querySelectorAll("tbody tr");
+        if (rows.length === 0) {
+            console.warn(`⚠️ No rows found in table: ${tableSelector}`);
+            return;
+        }
+    
+        let lastCell = null;
+        let rowspanCount = 1;
+    
+        console.log(`🔍 Merging column ${columnIndex} in table: ${tableSelector}`);
+    
+        rows.forEach((row, index) => {
+            const currentCell = row.cells[columnIndex];
+    
+            if (!currentCell) {
+                console.warn(`⚠️ No cell found at column ${columnIndex} in row ${index + 1}`);
+                return;
+            }
+    
+            console.log(`🟢 Processing row ${index + 1}: "${currentCell.textContent.trim()}"`);
+    
+            if (lastCell && lastCell.textContent.trim() === currentCell.textContent.trim()) {
+                rowspanCount++;
+                lastCell.rowSpan = rowspanCount;
+                currentCell.style.display = "none"; // Hide duplicate cell
+                console.log(`✅ Merging cell in row ${index + 1} with previous cell. New rowspan: ${rowspanCount}`);
+            } else {
+                lastCell = currentCell;
+                rowspanCount = 1; // Reset rowspan count
+                console.log(`🔄 New value detected, resetting rowspan count.`);
+            }
+        });
+    
+        console.log(`✅ Column ${columnIndex} merging complete in ${tableSelector}.`);
+    }
+    
+    // ✅ Ensure data is fully loaded before running merge
+    async function waitForTableData(tableSelector, columnIndex) {
+        console.log(`⏳ Waiting for table data to load: ${tableSelector}`);
+        
+        let retries = 10; // Adjust based on load time
+        let tableReady = false;
+    
+        while (retries > 0) {
+            const table = document.querySelector(tableSelector);
+            const rows = table ? table.querySelectorAll("tbody tr") : [];
+    
+            if (rows.length > 0) {
+                console.log(`✅ Table data loaded with ${rows.length} rows in ${tableSelector}.`);
+                tableReady = true;
+                break;
+            }
+    
+            console.log(`⏳ Waiting for ${tableSelector}... (${retries} retries left)`);
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
+            retries--;
+        }
+    
+        if (tableReady) {
+            mergeTableCells(tableSelector, columnIndex);
+        } else {
+            console.error(`❌ Table data failed to load for ${tableSelector}.`);
+        }
+    }
+    
+    // ✅ Call after fetching all data
+    setTimeout(() => {
+        waitForTableData("#airtable-data", 2); // Merge "Field Tech" column in airtable-data
+        waitForTableData("#feild-data", 2);   // Merge "Field Tech" column in feild-data
+    }, 1500);
+    
+    
+    
+    
 
     async function displayData(records, tableSelector, isSecondary = false) {
         const tableElement = document.querySelector(tableSelector); // Select the entire table

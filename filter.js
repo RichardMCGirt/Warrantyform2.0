@@ -10,21 +10,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("✅ Field Technicians Loaded.");
 
     attachCheckboxListeners(); // Attach event listeners to checkboxes
-    loadFiltersFromLocalStorage();
+    loadFiltersFromLocalStorage(); // Load saved filters, default to 'All'
 
-      // ✅ Start observing when the table data is inserted
-      observeTableData('#airtable-data tbody');
+    observeTableData('#airtable-data tbody');
     observeTableData('#feild-data tbody');
 
     let checkboxesAppended = false;
 
-    // Toggle menu visibility and append checkboxes dynamically
     menuToggle.addEventListener('click', () => {
         console.log("📂 Menu Toggle Clicked");
 
         if (!checkboxesAppended) {
             console.log("🆕 Appending checkboxes...");
-            generateCheckboxes(getFieldTechsFromTable()); // Append checkboxes dynamically
+            generateCheckboxes(getFieldTechsFromTable());
             checkboxesAppended = true;
         }
 
@@ -32,7 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log(`📂 Menu Status: ${checkboxContainer.classList.contains('show') ? "Opened" : "Closed"}`);
     });
 
-    // Close menu if clicking outside
     document.addEventListener('click', (event) => {
         if (!checkboxContainer.contains(event.target) && !menuToggle.contains(event.target)) {
             checkboxContainer.classList.remove('show');
@@ -40,6 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
+
 
 // ✅ Function to observe when table rows are added
 function observeTableData(selector) {
@@ -98,6 +96,7 @@ async function generateCheckboxes(fieldTechs) {
     attachCheckboxListeners(); // Attach event listeners
 }
 
+
 // ✅ Ensure fetchFieldTechs is defined
 async function fetchFieldTechs() {
     console.log("🔄 Fetching Field Techs...");
@@ -137,10 +136,16 @@ async function fetchFieldTechs() {
 }
 
 function filterRows() {
-
     const selectedBranches = Array.from(document.querySelectorAll('#filter-branch input[name="branch"]:checked'))
         .map(checkbox => checkbox.value.toLowerCase().trim());
 
+    if (selectedBranches.length === 0 || selectedBranches.includes("all")) {
+        console.log("🌍 'All' selected, displaying all rows.");
+        document.querySelectorAll('#airtable-data tbody tr, #feild-data tbody tr').forEach(row => {
+            row.style.display = ""; // Show all rows
+        });
+        return;
+    }
 
     const tables = [
         { table: document.querySelector('#airtable-data tbody'), h2: document.querySelector('#main-content h2') },
@@ -163,7 +168,7 @@ function filterRows() {
             if (!fieldTechColumn) return;
 
             const fieldTech = fieldTechColumn.textContent.toLowerCase().trim();
-            const isVisible = selectedBranches.includes("all") || selectedBranches.includes(fieldTech);
+            const isVisible = selectedBranches.includes(fieldTech);
 
             row.style.display = isVisible ? "" : "none";
 
@@ -179,8 +184,8 @@ function filterRows() {
             table.closest('table').querySelector('thead').style.display = '';
         }
     });
-
 }
+
 
 // ✅ Function to extract Field Techs from the table dynamically
 function getFieldTechsFromTable() {
@@ -233,8 +238,13 @@ function loadFiltersFromLocalStorage() {
 
         // Delay filter execution to ensure table data is loaded
         setTimeout(() => filterRows(), 500);
+    } else {
+        // If no filters are stored, keep "All" checked
+        document.querySelector('#filter-branch input[value="All"]').checked = true;
+        console.log("🆕 No stored filters. Defaulting to 'All' checked.");
     }
 }
+
 
 function attachCheckboxListeners() {
     const checkboxes = document.querySelectorAll('#filter-branch input[name="branch"]');
