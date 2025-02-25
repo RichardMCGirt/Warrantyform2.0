@@ -820,7 +820,6 @@ document.body.appendChild(fileInput);
             // Fetch all records and store original values
             do {
                 const data = await fetchData(offset);
-    
                 if (data && Array.isArray(data.records)) {
                     allRecords = allRecords.concat(data.records);
     
@@ -875,6 +874,13 @@ document.body.appendChild(fileInput);
             await displayData(primaryRecords, '#airtable-data', false, vendorOptions);
             await displayData(secondaryRecords, '#feild-data', true, subOptions);
     
+            // **Call merge function AFTER all data is loaded**
+            setTimeout(() => {
+                console.log('⏳ Attempting to merge table cells...');
+                mergeTableCells("#airtable-data", 2);
+                mergeTableCells("#feild-data", 2);
+            }, 500); // Allow slight delay for rendering
+    
             // Reveal content after loading
             mainContent.style.display = 'block';
             secondaryContent.style.display = 'block';
@@ -902,6 +908,7 @@ document.body.appendChild(fileInput);
             // Adjust table width if only one table has records
             adjustTableWidth();
             syncTableWidths();
+        
         }
     }
 
