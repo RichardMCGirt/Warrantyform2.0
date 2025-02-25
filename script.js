@@ -32,7 +32,6 @@ async function checkDropboxTokenValidity() {
     console.log("🔍 Checking Dropbox token validity...");
 
     if (!dropboxAccessToken) {
-        console.warn("⚠️ Dropbox access token is missing or undefined.");
         return;
     }
 
@@ -799,21 +798,20 @@ document.body.appendChild(fileInput);
     let subOptions = []; // Declare subOptions globally
 
     async function fetchAllData() {
+        console.log("⏳ Fetching all data from Airtable...");
         mainContent.style.display = 'none';
         secondaryContent.style.display = 'none';
     
+        let allRecords = [];
+        let offset = null;
         originalValues = {};
-        let loadProgress = 0;
     
         try {
-            let allRecords = [];
-            let offset = null;
-    
-            // Fetch sub options
+            // Fetch sub options (if needed)
             try {
                 subOptions = await fetchAirtableSubOptionsFromDifferentTable() || [];
             } catch (error) {
-                console.error('Error fetching sub options:', error);
+                console.error('⚠️ Error fetching subcontractor options:', error);
                 subOptions = [];
             }
     
@@ -822,66 +820,55 @@ document.body.appendChild(fileInput);
                 const data = await fetchData(offset);
                 if (data && Array.isArray(data.records)) {
                     allRecords = allRecords.concat(data.records);
-    
-                    // Store original values for each record
+                    // Store original values for change detection
                     data.records.forEach(record => {
                         originalValues[record.id] = { ...record.fields };
                     });
                 } else {
-                    console.error('Error: Invalid data structure or no records found.');
+                    console.error('⚠️ Error: Invalid data structure or no records found.');
                     break;
                 }
                 offset = data.offset;
             } while (offset);
     
-            // Fetch all field managers and map their IDs to names
+            console.log(`✅ Total records fetched: ${allRecords.length}`);
+    
+            // Fetch and map field manager names
             const fieldManagerMap = await fetchFieldManagerNames();
-            
-            // Assign readable names instead of record IDs
+    
+            // Assign display names instead of record IDs
             allRecords.forEach(record => {
                 const managerId = record.fields['Field Manager Assigned']?.[0] || null;
                 record.displayFieldManager = managerId && fieldManagerMap[managerId] ? fieldManagerMap[managerId] : 'Unknown';
             });
     
-            // Separate into primary and secondary records
+            // ✅ Separate into primary and secondary records
             const primaryRecords = allRecords.filter(record =>
-                record.fields['Status'] === 'Field Tech Review Needed' &&
-                !record.fields['Field Tech Reviewed']
+                record.fields['Status'] === 'Field Tech Review Needed' && !record.fields['Field Tech Reviewed']
             );
     
             const secondaryRecords = allRecords.filter(record =>
                 record.fields['Status'] === 'Scheduled- Awaiting Field'
             );
     
-            // 🔥 SORT PRIMARY RECORDS ALPHABETICALLY BY FIELD MANAGER NAME
-            primaryRecords.sort((a, b) => {
-                const nameA = a.displayFieldManager.toLowerCase();
-                const nameB = b.displayFieldManager.toLowerCase();
-                return nameA.localeCompare(nameB);
-            });
+            // ✅ Sort records alphabetically by Field Manager Name
+            primaryRecords.sort((a, b) => a.displayFieldManager.localeCompare(b.displayFieldManager));
+            secondaryRecords.sort((a, b) => a.displayFieldManager.localeCompare(b.displayFieldManager));
     
-            // 🔥 SORT SECONDARY RECORDS ALPHABETICALLY BY FIELD MANAGER NAME
-            secondaryRecords.sort((a, b) => {
-                const nameA = a.displayFieldManager.toLowerCase();
-                const nameB = b.displayFieldManager.toLowerCase();
-                return nameA.localeCompare(nameB);
-            });
+           
     
-            console.log("✅ Sorted Primary Records:", primaryRecords.map(r => r.displayFieldManager));
-            console.log("✅ Sorted Secondary Records:", secondaryRecords.map(r => r.displayFieldManager));
-    
-            // Display the primary and secondary records in your tables
+            // ✅ Display the records in tables
             await displayData(primaryRecords, '#airtable-data', false, vendorOptions);
             await displayData(secondaryRecords, '#feild-data', true, subOptions);
     
-            // **Call merge function AFTER all data is loaded**
+    
+            // ✅ Ensure merging occurs **after** data is fully loaded
             setTimeout(() => {
-                console.log('⏳ Attempting to merge table cells...');
                 mergeTableCells("#airtable-data", 2);
                 mergeTableCells("#feild-data", 2);
-            }, 500); // Allow slight delay for rendering
+            }, 500);
     
-            // Reveal content after loading
+            // ✅ Show the content after loading
             mainContent.style.display = 'block';
             secondaryContent.style.display = 'block';
             setTimeout(() => {
@@ -889,14 +876,14 @@ document.body.appendChild(fileInput);
                 secondaryContent.style.opacity = '1';
             }, 10);
     
-            // Adjust table width if only one table has records
+            // ✅ Adjust table widths if necessary
             adjustTableWidth();
             syncTableWidths();
     
         } catch (error) {
-            console.error('Error fetching all data:', error);
+            console.error("🚨 Error fetching data:", error);
     
-            // Fallback to ensure that the page still loads even if fetching data fails
+            // Ensure UI remains visible even if data fetching fails
             mainContent.style.display = 'block';
             secondaryContent.style.display = 'block';
             headerTitle.classList.add('visible');
@@ -905,12 +892,11 @@ document.body.appendChild(fileInput);
                 secondaryContent.style.opacity = '1';
             }, 10);
     
-            // Adjust table width if only one table has records
             adjustTableWidth();
             syncTableWidths();
-        
         }
     }
+    
 
     async function fetchDataFromAirtable() {
         const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}`;
@@ -1050,17 +1036,12 @@ document.body.appendChild(fileInput);
                 idMap[manager.id] = manager.fields['Full Name']; // Assuming the name field is "Name"
             });
     
-            console.log("📋 Field Manager ID to Name Map:", idMap);
             return idMap;
         } catch (error) {
             console.error("❌ Error fetching field manager names:", error);
             return {};
         }
     }
-    
-    
-
-    
     
     function checkForChanges(recordId) {
         console.log(`Checking for changes in record ID: ${recordId}`);
@@ -1321,7 +1302,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let lastCell = null;
         let rowspanCount = 1;
     
-        console.log(`🔍 Merging column ${columnIndex} in table: ${tableSelector}`);
     
         rows.forEach((row, index) => {
             const currentCell = row.cells[columnIndex];
@@ -1331,22 +1311,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
     
-            console.log(`🟢 Processing row ${index + 1}: "${currentCell.textContent.trim()}"`);
     
             if (lastCell && lastCell.textContent.trim() === currentCell.textContent.trim()) {
                 rowspanCount++;
                 lastCell.rowSpan = rowspanCount;
                 currentCell.style.display = "none"; // Hide duplicate cell
-                console.log(`✅ Merging cell in row ${index + 1} with previous cell. New rowspan: ${rowspanCount}`);
             } else {
                 lastCell = currentCell;
                 rowspanCount = 1; // Reset rowspan count
-                console.log(`🔄 New value detected, resetting rowspan count.`);
             }
         });
     
-        console.log(`✅ Column ${columnIndex} merging complete in ${tableSelector}.`);
     }
+
+    // Reapply row colors after merging
+document.querySelectorAll("tbody tr").forEach((row, index) => {
+    row.style.backgroundColor = index % 2 === 0 ? "#ffffff" : "#f8f8f8";
+});
+
     
     // ✅ Ensure data is fully loaded before running merge
     async function waitForTableData(tableSelector, columnIndex) {
@@ -1360,7 +1342,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const rows = table ? table.querySelectorAll("tbody tr") : [];
     
             if (rows.length > 0) {
-                console.log(`✅ Table data loaded with ${rows.length} rows in ${tableSelector}.`);
                 tableReady = true;
                 break;
             }

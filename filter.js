@@ -53,7 +53,6 @@ function observeTableData(selector) {
     const observer = new MutationObserver((mutationsList, observer) => {
         for (const mutation of mutationsList) {
             if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-                console.log(`🟢 Data detected in ${selector}! Applying filters...`);
                 filterRows();
                 observer.disconnect(); // Stop observing once data is loaded
             }
