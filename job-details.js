@@ -8,6 +8,49 @@ document.addEventListener("DOMContentLoaded", async function () {
     const airtableTableName = window.env.AIRTABLE_TABLE_NAME;
     console.log("🆔 Record ID from URL:", recordId);
 
+    const fieldReviewNotNeeded = document.getElementById("field-review-not-needed");
+    const fieldReviewNeeded = document.getElementById("field-review-needed");
+    const messageContainer = document.getElementById("message-container"); // Create a container for the message
+
+     // Ensure only one checkbox can be checked at a time
+     fieldReviewNotNeeded.addEventListener("change", function() {
+        if (fieldReviewNotNeeded.checked) {
+            fieldReviewNeeded.disabled = true; // Disable the other checkbox
+            fieldReviewNeeded.checked = false; // Uncheck the other checkbox
+
+            appendMessage("Field Review Not Needed has been selected. Field Review Needed is now disabled.");
+        } else {
+            fieldReviewNeeded.disabled = false; // Enable the other checkbox when unchecked
+            clearMessage();
+        }
+    });
+
+    fieldReviewNeeded.addEventListener("change", function() {
+        if (fieldReviewNeeded.checked) {
+            fieldReviewNotNeeded.disabled = true; // Disable the other checkbox
+            fieldReviewNotNeeded.checked = false; // Uncheck the other checkbox
+
+            appendMessage("Field Review Needed has been selected. Field Review Not Needed is now disabled.");
+        } else {
+            fieldReviewNotNeeded.disabled = false; // Enable the other checkbox when unchecked
+            clearMessage();
+        }
+    });
+
+    // Function to append a message to the message container
+    function appendMessage(message) {
+        const messageElement = document.createElement("p");
+        messageElement.textContent = message;
+        messageElement.style.color = "red";  // Inline style for red color
+        messageContainer.appendChild(messageElement);
+    }
+
+    // Function to clear the message when checkboxes are unchecked
+    function clearMessage() {
+        messageContainer.innerHTML = ""; // Clears the message container
+    }
+
+
     if (!recordId) {
         alert("No job selected.");
         window.location.href = "index.html";
@@ -118,7 +161,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     
     
-    // 🔹 Populate Primary Fields
    // 🔹 Populate Primary Fields
 function populatePrimaryFields(job) {
     console.log("🛠 Populating UI with Record ID:", job["id"]);
@@ -147,8 +189,9 @@ function populatePrimaryFields(job) {
 
     console.log("✅ UI should now have updated values for:", job["Lot Number and Community/Neighborhood"]);
 
-    setCheckboxValue("field-review-not-needed", job["Field Review Not Needed"]);
     setCheckboxValue("job-completed", job["Job Completed"]);
+    setCheckboxValue("field-review-not-needed", job["Field Review Not Needed"]);
+
     setCheckboxValue("field-review-needed", job["Field Review Needed"]);
     setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
 

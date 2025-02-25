@@ -9,6 +9,11 @@ body {
     align-items: center;
 }
 
+input[type="checkbox"] {
+    transform: scale(1.5);  /* Scales checkboxes to 1.5 times their original size */
+    margin: 10px;  /* Optional: Adds some space around the checkboxes */
+}
+
 /* Navigation */
 nav {
     width: 100%;
