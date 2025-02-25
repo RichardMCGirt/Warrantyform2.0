@@ -226,3 +226,19 @@ label[for="field-status"],
         padding: 8px;
     }
 }
+
+/* Override default disabled input styling */
+input:disabled, textarea:disabled {
+    color: #333 !important; /* Darker color */
+    opacity: 1 !important; /* Ensures full opacity */
+    background-color: #f9f9f9 !important; /* Light background for contrast */
+    border: 1px solid #ccc !important; /* Add a border for better visibility */
+}
+
+/* Ensure better visibility on mobile */
+@media (max-width: 768px) {
+    input:disabled, textarea:disabled {
+        color: #222 !important; /* Even darker shade for mobile */
+        font-weight: bold; /* Makes text stand out */
+    }
+}
