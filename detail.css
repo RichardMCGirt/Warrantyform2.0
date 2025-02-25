@@ -10,9 +10,11 @@ body {
 }
 
 input[type="checkbox"] {
-    transform: scale(1.5);  /* Scales checkboxes to 1.5 times their original size */
-    margin: 10px;  /* Optional: Adds some space around the checkboxes */
+    width: 20px;
+    height: 20px;
+    margin: 10px;
 }
+
 
 /* Navigation */
 nav {
@@ -213,5 +215,14 @@ label[for="field-status"],
     .back-button {
         padding: 10px 15px;
         font-size: 14px;
+    }
+}
+
+@media screen and (max-width: 390px) {
+    input,
+    textarea,
+    select {
+        font-size: 13px;
+        padding: 8px;
     }
 }
