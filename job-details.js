@@ -248,63 +248,69 @@ async function loadJobDetails(recordId) {
 }
 
     
-    function displayImages(images, containerId, targetField) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = ""; // Clear existing images
-    
-        console.log("📡 Fetching images for display:", images);
-    
-        if (images && images.length > 0) {
-            images.forEach((file, index) => {
-                console.log("🖼️ Processing file:", file);
-    
-                const wrapperDiv = document.createElement("div");
-                wrapperDiv.classList.add("image-wrapper");
-                wrapperDiv.style.display = "inline-block";
-                wrapperDiv.style.margin = "10px";
-                wrapperDiv.style.position = "relative";
-                wrapperDiv.style.textAlign = "center";
-    
-                // Create checkbox for selecting image
-                const checkbox = document.createElement("input");
-                checkbox.type = "checkbox";
-                checkbox.value = file.url;
-                checkbox.classList.add("image-checkbox");
-                checkbox.style.position = "absolute";
-                checkbox.style.top = "5px";
-                checkbox.style.left = "5px";
-    
-                // If it's a PDF, embed it
-                if (file.url.toLowerCase().endsWith('.pdf')) {
-                    const embedElement = document.createElement("embed");
-                    embedElement.src = file.url;
-                    embedElement.type = "application/pdf";
-                    embedElement.width = "100%";
-                    embedElement.height = "200px";
-                    wrapperDiv.appendChild(embedElement);
-                } 
-                // Otherwise, treat as an image
-                else {
-                    const imgElement = document.createElement("img");
-                    imgElement.src = file.url;
-                    imgElement.classList.add("uploaded-image");
-                    imgElement.style.maxWidth = "200px";
-                    imgElement.style.borderRadius = "5px";
-                    wrapperDiv.appendChild(imgElement);
-                }
-    
-                // Append checkbox to wrapper div
-                wrapperDiv.appendChild(checkbox);
-                container.appendChild(wrapperDiv);
-            });
-    
-            // Add "Delete Selected" button if images exist
-            addDeleteButton(containerId, targetField);
-        } else {
-            console.warn("⚠️ No images found.");
-            container.innerHTML = "<p>No images available.</p>";
-        }
+function displayImages(files, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = ""; // Clear previous files
+
+    console.log(`📡 Displaying files in: ${containerId}`, files);
+
+    if (files && files.length > 0) {
+        files.forEach((file) => {
+            console.log("🖼️ Processing file:", file);
+
+            let fileUrl = file.url;
+
+            // Create a wrapper div
+            const wrapperDiv = document.createElement("div");
+            wrapperDiv.classList.add("file-wrapper");
+            wrapperDiv.style.display = "inline-block";
+            wrapperDiv.style.margin = "10px";
+            wrapperDiv.style.position = "relative";
+            wrapperDiv.style.textAlign = "center";
+
+            if (file.type === "application/pdf") {
+                // ✅ Embed PDFs in an iframe for direct preview
+                const pdfViewer = document.createElement("iframe");
+                pdfViewer.src = fileUrl;
+                pdfViewer.width = "100%";  // Adjust as needed
+                pdfViewer.height = "500px";
+                pdfViewer.style.border = "1px solid #ccc";
+                pdfViewer.style.borderRadius = "5px";
+                pdfViewer.style.backgroundColor = "#fff";
+                pdfViewer.allow = "fullscreen";
+
+                // **Fix for Airtable files:** Open in a new tab if preview fails
+                pdfViewer.onerror = () => {
+                    console.warn("⚠️ PDF cannot be previewed, opening in new tab:", fileUrl);
+                    const link = document.createElement("a");
+                    link.href = fileUrl;
+                    link.target = "_blank";
+                    link.textContent = "Open PDF";
+                    wrapperDiv.appendChild(link);
+                };
+
+                wrapperDiv.appendChild(pdfViewer);
+            } else {
+                // ✅ Display images normally
+                const imgElement = document.createElement("img");
+                imgElement.src = fileUrl;
+                imgElement.classList.add("uploaded-image");
+                imgElement.style.maxWidth = "300px";
+                imgElement.style.borderRadius = "5px";
+                imgElement.style.border = "1px solid #ddd";
+                wrapperDiv.appendChild(imgElement);
+            }
+
+            container.appendChild(wrapperDiv);
+        });
+    } else {
+        console.warn("⚠️ No files found.");
+        container.innerHTML = "<p>No files available.</p>";
     }
+}
+
+
+
 
     async function testFetchImages() {
         try {
