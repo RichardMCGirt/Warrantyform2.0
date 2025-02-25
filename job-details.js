@@ -269,35 +269,48 @@ function displayImages(files, containerId) {
             wrapperDiv.style.textAlign = "center";
 
             if (file.type === "application/pdf") {
-                // ✅ Embed PDFs in an iframe for direct preview
+                // ✅ Create a direct clickable link for PDFs
+                const pdfLink = document.createElement("a");
+                pdfLink.href = fileUrl;
+                pdfLink.target = "_blank"; // Opens in a new tab
+                pdfLink.textContent = "Open PDF";
+                pdfLink.style.display = "block";
+                pdfLink.style.color = "blue";
+                pdfLink.style.textDecoration = "underline";
+                pdfLink.style.marginTop = "5px";
+
+                // Create a preview iframe
                 const pdfViewer = document.createElement("iframe");
                 pdfViewer.src = fileUrl;
-                pdfViewer.width = "100%";  // Adjust as needed
-                pdfViewer.height = "500px";
+                pdfViewer.width = "100%";  
+                pdfViewer.height = "200px"; 
                 pdfViewer.style.border = "1px solid #ccc";
                 pdfViewer.style.borderRadius = "5px";
                 pdfViewer.style.backgroundColor = "#fff";
-                pdfViewer.allow = "fullscreen";
 
-                // **Fix for Airtable files:** Open in a new tab if preview fails
+                // If the PDF fails to load, the user can still click the link
                 pdfViewer.onerror = () => {
-                    console.warn("⚠️ PDF cannot be previewed, opening in new tab:", fileUrl);
-                    const link = document.createElement("a");
-                    link.href = fileUrl;
-                    link.target = "_blank";
-                    link.textContent = "Open PDF";
-                    wrapperDiv.appendChild(link);
+                    console.warn("⚠️ PDF cannot be previewed, use the direct link:", fileUrl);
                 };
 
                 wrapperDiv.appendChild(pdfViewer);
+                wrapperDiv.appendChild(pdfLink);
             } else {
-                // ✅ Display images normally
+                // ✅ Display images and make them clickable
                 const imgElement = document.createElement("img");
                 imgElement.src = fileUrl;
                 imgElement.classList.add("uploaded-image");
                 imgElement.style.maxWidth = "300px";
                 imgElement.style.borderRadius = "5px";
                 imgElement.style.border = "1px solid #ddd";
+                imgElement.style.cursor = "pointer"; // Indicate clickability
+
+                // Ensure image opens in a new tab on click
+                imgElement.addEventListener("click", function () {
+                    console.log("🖼️ Image clicked:", fileUrl);
+                    window.open(fileUrl, "_blank");
+                });
+
                 wrapperDiv.appendChild(imgElement);
             }
 
@@ -308,6 +321,8 @@ function displayImages(files, containerId) {
         container.innerHTML = "<p>No files available.</p>";
     }
 }
+
+
 
 
 
