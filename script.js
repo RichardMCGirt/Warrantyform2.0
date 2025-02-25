@@ -1805,28 +1805,31 @@ select.addEventListener('change', () => {
     
         fieldConfigs.forEach(config => {
     
-            // 🔥 Instead of checking jobDetailsLink, always log and apply the redirect
-            if (config.field.includes("Lot Number")) {  
-                const jobId = record.id;  
-            
-                // Ensure cell is mutable
-                let cell = row.querySelector(`td[data-field="${config.field}"]`); 
-            
-                cell.style.cursor = 'pointer';
-                cell.style.color = 'blue';
-                cell.style.textDecoration = 'underline';
-            
-                // 🔥 Remove any existing event listeners (prevents duplicates)
-                cell.replaceWith(cell.cloneNode(true));
-                cell = row.querySelector(`td[data-field="${config.field}"]`);
-            
-                // 🔴 Force Redirect with `location.href`
-                cell.addEventListener('click', () => {
-                    console.log(`🔀 Redirecting NOW to job-details.html?id=${jobId}`);
-                    window.location.href = `job-details.html?id=${jobId}`;
-                });
-            
-            }
+       // 🔥 Instead of checking jobDetailsLink, always log and apply the redirect
+if (config.field.includes("Lot Number")) {
+    // Fetch the unique record ID from the cell's `data-id` attribute
+    const jobId = row.querySelector('td[data-field="b"]').getAttribute("data-id");
+
+    // Ensure cell is mutable and uniquely identifiable
+    let cell = row.querySelector(`td[data-field="${config.field}"]`);
+
+    // Add styles to indicate it is clickable
+    cell.style.cursor = 'pointer';
+    cell.style.color = 'blue';
+    cell.style.textDecoration = 'underline';
+
+    // 🔥 Remove any existing event listeners (prevents duplicates)
+    cell.replaceWith(cell.cloneNode(true));  // Re-create the cell to reset event listeners
+    cell = row.querySelector(`td[data-field="${config.field}"]`);
+
+    // 🔴 Force Redirect with `location.href`
+    cell.addEventListener('click', () => {
+        console.log(`🔀 Redirecting NOW to job-details.html?id=${jobId}`);
+        window.location.href = `job-details.html?id=${jobId}`;
+    });
+}
+
+
             
             
         });
@@ -1907,269 +1910,12 @@ select.addEventListener('change', () => {
         });
     });
 
-    document.querySelectorAll('td[data-field="Lot Number and Community/Neighborhood"]').forEach(cell => {
-        console.log("🛠 Checking Cell:", cell);
-        console.log("Click Event Listeners:", getEventListeners(cell));
-    });
+  
+
     
    
-    async function deleteImageFromAirtable(recordId, imageId, imageField) {
-        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}/${recordId}`;
-        const currentImages = await fetchCurrentImagesFromAirtable(recordId, imageField);
-        const updatedImages = currentImages.filter(image => image.id !== imageId);
     
-        const body = JSON.stringify({ fields: { [imageField]: updatedImages.length > 0 ? updatedImages : [] } });
-        const imageElement = document.querySelector(`img[src="${currentImages.find(img => img.id === imageId)?.url}"]`);
-        const trashCan = document.querySelector('.trash-can');
-    
-        if (!imageElement || !trashCan) {
-            return;
-        }
-    
-        // Define the white smoke "poof" effect
-        const style = document.createElement('style');
-        style.innerHTML = `
-            @keyframes poofToWhiteSmoke {
-                0% {
-                    opacity: 1;
-                    transform: scale(1) rotate(0deg);
-                    filter: blur(0);
-                }
-                25% {
-                    opacity: 0.8;
-                    transform: scale(1.2) rotate(10deg);
-                    filter: blur(2px);
-                    background-color: rgba(255, 255, 255, 0.3);
-                }
-                50% {
-                    opacity: 0.5;
-                    transform: scale(1.5) rotate(20deg);
-                    filter: blur(5px);
-                    background-color: rgba(255, 255, 255, 0.6);
-                }
-                75% {
-                    opacity: 0.3;
-                    transform: scale(1.8) rotate(-15deg);
-                    filter: blur(10px);
-                    background-color: rgba(255, 255, 255, 0.8);
-                }
-                100% {
-                    opacity: 0;
-                    transform: scale(2) rotate(30deg);
-                    filter: blur(12px);
-                    background-color: rgba(255, 255, 255, 1);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    
-        // Apply the animation and remove the image after animation completes
-        imageElement.style.animation = 'poofToWhiteSmoke 3s ease forwards'; // Set to 3s for visibility
-    
-        setTimeout(async () => {
-            try {
-                const response = await fetch(url, {
-                    method: 'PATCH',
-                    headers: {
-                        Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: body
-                });
-    
-                if (!response.ok) {
-                    const errorDetails = await response.json();
-                    console.error(`Error updating record: ${response.status} ${response.statusText}`, errorDetails);
-                } else {
-                    console.log('Image successfully deleted from Airtable:', await response.json());
-                    imageElement.remove();
-                }
-            } catch (error) {
-                console.error('Error updating record in Airtable:', error);
-            }
-        }, 3000); // Match the timeout to the animation duration
-    }
-       
-    function openImageViewer(images, startIndex) {
-        let imageViewerModal = document.getElementById('image-viewer-modal');
-        if (!imageViewerModal) {
-            imageViewerModal = document.createElement('div');
-            imageViewerModal.id = 'image-viewer-modal';
-            imageViewerModal.classList.add('image-viewer-modal');
-            document.body.appendChild(imageViewerModal);
-    
-            const modalImage = document.createElement('img');
-            modalImage.classList.add('modal-image');
-            modalImage.id = 'modal-image'; 
-            imageViewerModal.appendChild(modalImage);
-    
-            const closeModalButton = document.createElement('button');
-            closeModalButton.textContent = 'X';
-            closeModalButton.classList.add('close-modal-button');
-            closeModalButton.onclick = () => closeModal(); 
-            imageViewerModal.appendChild(closeModalButton);
-    
-            const prevButton = document.createElement('button');
-            prevButton.textContent = '<';
-            prevButton.classList.add('carousel-nav-button', 'prev');
-            prevButton.onclick = () => {
-                currentIndex = (currentIndex > 0) ? currentIndex - 1 : images.length - 1;
-                updateModalImage();
-            };
-            imageViewerModal.appendChild(prevButton);
-    
-            const nextButton = document.createElement('button');
-            nextButton.textContent = '>';
-            nextButton.classList.add('carousel-nav-button', 'next');
-            nextButton.onclick = () => {
-                currentIndex = (currentIndex < images.length - 1) ? currentIndex + 1 : 0;
-                updateModalImage();
-            };
-            imageViewerModal.appendChild(nextButton);
-        }
-    
-        let currentIndex = startIndex;
-    
-        function updateModalImage() {
-            const modalImage = document.getElementById('modal-image');
-            if (images[currentIndex]) {
-                modalImage.src = images[currentIndex].url;
-            } else {
-                console.error('Image not found at index:', currentIndex);
-            }
-        }
-    
-const modalImage = document.getElementById('modalImage');
 
-
-
-function closeModal() {
-    imageViewerModal.style.display = 'none';
-    enablePageScrolling();
-    document.removeEventListener('keydown', handleKeyNavigation); 
-}
-
-imageViewerModal.addEventListener('click', function(event) {
-    if (event.target === imageViewerModal) { 
-        closeModal();
-    }
-});
-       
-        updateModalImage();
-        imageViewerModal.style.display = 'flex'; 
-    
-        function handleKeyNavigation(event) {
-            if (event.key === 'ArrowLeft') {
-                currentIndex = (currentIndex > 0) ? currentIndex - 1 : images.length - 1;
-                updateModalImage();
-            } else if (event.key === 'ArrowRight') {
-                currentIndex = (currentIndex < images.length - 1) ? currentIndex + 1 : 0;
-                updateModalImage();
-            } else if (event.key === 'Escape') {
-                closeModal(); 
-            }
-        }
-    
-        document.addEventListener('keydown', handleKeyNavigation);
-    }   
-       
-    function enablePageScrolling() {
-        document.body.style.overflow = '';
-    }
-    
-    function showToast(message) {
-        toast.textContent = message;
-        toast.style.visibility = 'visible';
-        toast.style.opacity = '1';
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                toast.style.visibility = 'hidden';
-            }, 500);
-        }, 3000);
-    }
-
-    function disableAddPhotosButton(recordId, disable) {
-        const addPhotoButton = document.querySelector(`td[data-id="${recordId}"] .image-carousel button`);
-        if (addPhotoButton) {
-            addPhotoButton.disabled = disable;
-        }
-    }
-     // Function to hide the submit button
-     function hideSubmitButton() {
-        submitButton.style.display = 'none';
-        hasChanges = false;
-        activeRecordId = null;
-        console.log('Submit button hidden. No changes detected.');
-    }
-    
-// Function to submit changes
-async function submitChanges() {
-    if (!confirmationShown) {
-        const userConfirmed = confirm("Are you sure you want to submit all changes?");
-        if (!userConfirmed) {
-            showToast('Submission canceled.');
-            confirmationShown = false;
-            return;
-        }
-        confirmationShown = true;
-    }
-    try {
-        mainContent.style.display = 'none';
-        secondaryContent.style.display = 'none';
-
-        // Loop through all records
-        for (const recordId in originalValues) {
-            const fieldsToUpdate = updatedFields[recordId] || {};
-
-            // Check Start Date and generate Calendar Link if it doesn't exist or needs updating
-            const startDateField = originalValues[recordId]?.['Start Date'];
-            const existingCalendarLink = originalValues[recordId]?.['Calendar Link'];
-            
-            if (startDateField && !existingCalendarLink) { // Add `!existingCalendarLink` if you only want to add the link if it's missing
-                // Convert Start Date from 'MM/DD/YYYY HH:mm AM/PM' format to 'YYYYMMDD'
-                const parsedDate = new Date(startDateField);
-                
-                if (!isNaN(parsedDate)) {
-                    const formattedStartDate = parsedDate.toISOString().split('T')[0].replace(/-/g, '');
-                    const calendarUrl = `https://calendar.google.com/calendar/embed?src=c_ebe1fcbce1be361c641591a6c389d4311df7a97961af0020c889686ae059d20a%40group.calendar.google.com&ctz=America%2FToronto&dates=${formattedStartDate}/${formattedStartDate}`;
-                    
-                    fieldsToUpdate['Calendar Link'] = calendarUrl;
-                    console.log(`Generated Calendar Link for record ${recordId}:`, calendarUrl); // Log each Calendar Link
-                } else {
-                    console.error(`Invalid Start Date format for record ${recordId}, unable to generate Calendar Link.`);
-                }
-            }
-            // Skip if there are no fields to update
-            if (Object.keys(fieldsToUpdate).length === 0) continue;
-
-            // Log the payload for this record before updating
-            console.log(`Payload to update in Airtable for record ${recordId}:`, fieldsToUpdate);
-
-            // Update record in Airtable
-            await updateRecord(recordId, fieldsToUpdate);
-        }
-
-        showToast('All changes submitted successfully!');
-        updatedFields = {};
-        hasChanges = false;
-        activeRecordId = null;
-        confirmationShown = false;
-        hideSubmitButton();
-
-        await fetchAllData(); // Refresh data
-    } catch (error) {
-        console.error('Error during submission:', error);
-        showToast('Error submitting changes.');
-        confirmationShown = false;
-    }
-        finally {
-        mainContent.style.display = 'block';
-        secondaryContent.style.display = 'block';
-        hideSubmitButton();
-    }
-}
 
 submitButton.addEventListener('click', function () {
     console.log('Submit button clicked.');

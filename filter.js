@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-
 // ✅ Function to observe when table rows are added
 function observeTableData(selector) {
     const targetNode = document.querySelector(selector);
@@ -67,7 +66,6 @@ function observeTableData(selector) {
 
 // ✅ Generate Checkboxes only when menu is clicked
 async function generateCheckboxes(fieldTechs) {
-
     const filterBranchDiv = document.getElementById('filter-branch');
     filterBranchDiv.innerHTML = ''; // Clear existing checkboxes
 
@@ -95,7 +93,6 @@ async function generateCheckboxes(fieldTechs) {
     console.log("✅ Checkboxes Added to DOM.");
     attachCheckboxListeners(); // Attach event listeners
 }
-
 
 // ✅ Ensure fetchFieldTechs is defined
 async function fetchFieldTechs() {
@@ -168,7 +165,7 @@ function filterRows() {
             if (!fieldTechColumn) return;
 
             const fieldTech = fieldTechColumn.textContent.toLowerCase().trim();
-            const isVisible = selectedBranches.includes(fieldTech);
+            const isVisible = selectedBranches.some(branch => fieldTech.includes(branch));
 
             row.style.display = isVisible ? "" : "none";
 
@@ -185,7 +182,6 @@ function filterRows() {
         }
     });
 }
-
 
 // ✅ Function to extract Field Techs from the table dynamically
 function getFieldTechsFromTable() {
@@ -244,7 +240,6 @@ function loadFiltersFromLocalStorage() {
         console.log("🆕 No stored filters. Defaulting to 'All' checked.");
     }
 }
-
 
 function attachCheckboxListeners() {
     const checkboxes = document.querySelectorAll('#filter-branch input[name="branch"]');
