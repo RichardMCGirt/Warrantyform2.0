@@ -16,6 +16,11 @@ body {
 }
 
 
+/* Target the "Lot Number" cells */
+td[data-field="Lot Number and Community/Neighborhood"]:hover {
+    transform: scale(1.1);  /* Slightly enlarge the cell */
+    transition: transform 0.2s ease-in-out;  /* Smooth transition */
+}
 
 /* Keep only the "Lot Number and Community" column visible in both tables */
 #airtable-data th:nth-child(4), 

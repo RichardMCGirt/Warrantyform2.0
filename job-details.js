@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const airtableApiKey = window.env.AIRTABLE_API_KEY;
     const airtableBaseId = window.env.AIRTABLE_BASE_ID;
     const airtableTableName = window.env.AIRTABLE_TABLE_NAME;
+    console.log("🆔 Record ID from URL:", recordId);
 
     if (!recordId) {
         alert("No job selected.");
@@ -25,9 +26,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         dropboxAccessToken = await fetchDropboxToken();
         
         if (!dropboxAccessToken) {
-            console.error("❌ Dropbox token is missing. Uploads will not work.");
         } else {
-            console.log("🔑 Dropbox Access Token:", dropboxAccessToken);
         }
 
         // ✅ Fetch Subcontractors Based on `b` Value and Populate Dropdown
@@ -52,12 +51,22 @@ document.addEventListener("DOMContentLoaded", async function () {
     // 🔹 Fetch Airtable Record Function
     async function fetchAirtableRecord(tableName, recordId) {
         const url = `https://api.airtable.com/v0/${airtableBaseId}/${tableName}/${recordId}`;
+    
+        console.log("🔍 Fetching Record from Airtable:", url);
+    
         const response = await fetch(url, {
             headers: { Authorization: `Bearer ${airtableApiKey}` }
         });
-        if (!response.ok) throw new Error(`Error fetching Airtable data: ${response.statusText}`);
-        return await response.json();
+    
+        const data = await response.json();
+    
+        console.log("📌 Total Records Returned:", data.records ? data.records.length : 1);
+        
+        return data;
     }
+    
+    
+    
 
     async function updateAirtableRecord(tableName, recordId, fields) {
         const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${tableName}/${recordId}`;
@@ -93,94 +102,109 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
     
+    document.querySelectorAll(".job-link").forEach(link => {
+        link.addEventListener("click", function (event) {
+            event.preventDefault();
+            const jobId = this.dataset.recordId;
+            const jobName = this.textContent.trim(); // Get the text (Lot Number and Community/Neighborhood)
+            
+            console.log("🔗 Navigating to Job:", jobId);
+            console.log("🏠 Job Name (Lot Number and Community/Neighborhood):", jobName);
+            
+            // Ensure the URL updates with the correct job ID
+            window.location.href = `job-details.html?id=${jobId}`;
+        });
+    });
+    
     
     
     // 🔹 Populate Primary Fields
-    function populatePrimaryFields(job) {
+   // 🔹 Populate Primary Fields
+function populatePrimaryFields(job) {
+    console.log("🛠 Populating UI with Record ID:", job["id"]);
+    
+    // Ensure "Lot Number and Community/Neighborhood" field is correctly set
+    if (job["Lot Number and Community/Neighborhood"]) {
+        console.log("✅ Updating UI with Lot Number and Community/Neighborhood:", job["Lot Number and Community/Neighborhood"]);
         setInputValue("job-name", job["Lot Number and Community/Neighborhood"]);
-        setInputValue("field-tech", job["field tech"]);
-        setInputValue("address", job["Address"]);
-        setInputValue("homeowner-name", job["Homeowner Name"]);
-        setInputValue("contact-email", job["Contact Email"]);
-        setInputValue("description", job["Description of Issue"]);
-        setInputValue("dow-completed", job["DOW to be Completed"]); 
-        setInputValue("field-status", job["Status"]);
-        setInputValue("billable-status", job["Billable/ Non Billable"]);
-        setInputValue("homeowner-builder", job["Homeowner Builder pay"]);
-        setInputValue("billable-reason", job["Billable Reason (If Billable)"]);
-        setInputValue("subcontractor", job["Subcontractor"]);
-        setInputValue("materials-needed", job["Materials Needed"]);
-        setInputValue("subcontractor-payment", job["Subcontractor Payment"]); // ✅ Ensure number is set
-    
-        setCheckboxValue("field-review-not-needed", job["Field Review Not Needed"]);
-        setCheckboxValue("job-completed", job["Job Completed"]);
-
-        setCheckboxValue("field-review-needed", job["Field Review Needed"]);
-        setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
-    
-        // Load images from Airtable
-        displayImages(job["Picture(s) of Issue"], "issue-pictures");
-        displayImages(job["Completed Pictures"], "completed-pictures");
-    
-        // If status is "Field Tech Review Needed", hide completed pictures and job completed elements
-        if (job["Status"] === "Field Tech Review Needed") {
-            // Hide Completed Pictures section and file input
-            const completedPictures = document.getElementById("completed-pictures");
-            const uploadCompletedPicture = document.getElementById("upload-completed-picture");
-            if (completedPictures) {
-                completedPictures.style.display = "none";
-            }
-            if (uploadCompletedPicture) {
-                uploadCompletedPicture.style.display = "none";
-            }
-    
-            // Hide Job Completed checkbox
-            const jobCompleted = document.getElementById("job-completed");
-            if (jobCompleted) {
-                jobCompleted.style.display = "none";
-            }
-    
-            // Hide the Job Completed label
-            const jobCompletedLabel = document.getElementById("job-completed-label");
-            if (jobCompletedLabel) {
-                jobCompletedLabel.style.display = "none";
-            }
-            
-            // Hide the Completed Pictures heading
-            const completedPicturesHeading = document.getElementById("completed-pictures-heading");
-            if (completedPicturesHeading) {
-                completedPicturesHeading.style.display = "none";
-            }
-        }
+    } else {
+        console.warn("⚠️ Missing Lot Number and Community/Neighborhood field in the record.");
     }
+
+    setInputValue("field-tech", job["field tech"]);
+    setInputValue("address", job["Address"]);
+    setInputValue("homeowner-name", job["Homeowner Name"]);
+    setInputValue("contact-email", job["Contact Email"]);
+    setInputValue("description", job["Description of Issue"]);
+    setInputValue("dow-completed", job["DOW to be Completed"]); 
+    setInputValue("field-status", job["Status"]);
+    setInputValue("billable-status", job["Billable/ Non Billable"]);
+    setInputValue("homeowner-builder", job["Homeowner Builder pay"]);
+    setInputValue("billable-reason", job["Billable Reason (If Billable)"]);
+    setInputValue("subcontractor", job["Subcontractor"]);
+    setInputValue("materials-needed", job["Materials Needed"]);
+    setInputValue("subcontractor-payment", job["Subcontractor Payment"]); // ✅ Ensure number is set
+
+    console.log("✅ UI should now have updated values for:", job["Lot Number and Community/Neighborhood"]);
+
+    setCheckboxValue("field-review-not-needed", job["Field Review Not Needed"]);
+    setCheckboxValue("job-completed", job["Job Completed"]);
+    setCheckboxValue("field-review-needed", job["Field Review Needed"]);
+    setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
+
+    // Load images from Airtable
+    displayImages(job["Picture(s) of Issue"], "issue-pictures");
+    displayImages(job["Completed Pictures"], "completed-pictures");
+
+    // If status is "Field Tech Review Needed", hide completed pictures and job completed elements
+    if (job["Status"] === "Field Tech Review Needed") {
+        console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
+
+        // Hide Completed Pictures section and file input
+        const completedPictures = document.getElementById("completed-pictures");
+        const uploadCompletedPicture = document.getElementById("upload-completed-picture");
+        if (completedPictures) completedPictures.style.display = "none";
+        if (uploadCompletedPicture) uploadCompletedPicture.style.display = "none";
+
+        // Hide Job Completed checkbox
+        const jobCompleted = document.getElementById("job-completed");
+        if (jobCompleted) jobCompleted.style.display = "none";
+
+        // Hide the Job Completed label
+        const jobCompletedLabel = document.getElementById("job-completed-label");
+        if (jobCompletedLabel) jobCompletedLabel.style.display = "none";
+
+        // Hide the Completed Pictures heading
+        const completedPicturesHeading = document.getElementById("completed-pictures-heading");
+        if (completedPicturesHeading) completedPicturesHeading.style.display = "none";
+    }
+}
+
     
      
-    async function loadJobDetails(recordId) {
-        try {
-            console.log("📡 Fetching job details for:", recordId);
-            const jobData = await fetchAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId);
-    
-            if (jobData && jobData.fields) {
-                console.log("✅ Job data fetched:", jobData.fields);
-                
-                // ✅ Store current subcontractor selection before repopulating
-                if (jobData.fields["Subcontractor"]) {
-                    document.getElementById("subcontractor-dropdown").setAttribute("data-selected", jobData.fields["Subcontractor"]);
-                }
-    
-                // ✅ Populate dropdown again to ensure selected value is retained
-                await fetchAndPopulateSubcontractors(recordId);
-            }
-        } catch (error) {
-            console.error("❌ Error fetching job details:", error);
-        }
-    }
-    
-    
-    
-    
-    
+async function loadJobDetails(recordId) {
+    try {
+        console.log("📡 Fetching job details for:", recordId);
+        const jobData = await fetchAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId);
 
+        if (jobData && jobData.fields) {
+            console.log("✅ Job data fetched:", jobData.fields);
+
+            // Ensure the fetched job matches the `Lot Number and Community/Neighborhood`
+            if (jobData.fields["Lot Number and Community/Neighborhood"]) {
+                console.log("🏠 Lot Number and Community/Neighborhood:", jobData.fields["Lot Number and Community/Neighborhood"]);
+            } else {
+                console.warn("⚠️ Missing Lot Number and Community/Neighborhood field.");
+            }
+
+            populatePrimaryFields(jobData.fields);
+        }
+    } catch (error) {
+        console.error("❌ Error fetching job details:", error);
+    }
+}
+
+    
     function displayImages(images, containerId, targetField) {
         const container = document.getElementById(containerId);
         container.innerHTML = ""; // Clear existing images
@@ -256,8 +280,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     testFetchImages();
     
-    
-    
     function addDeleteButton(containerId, targetField) {
         const container = document.getElementById(containerId);
     
@@ -327,9 +349,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
     
-    
-    
-
     document.addEventListener("DOMContentLoaded", function () {
         console.log("✅ Job Details Page Loaded.");
     
@@ -347,7 +366,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
     
-
     document.getElementById("save-job").addEventListener("click", async function () {
         console.log("🔄 Save button clicked. Collecting all field values...");
     
@@ -400,37 +418,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             alert("Error saving job details. Please try again.");
         }
     });
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    function updateUIAfterSave(recordId, updatedFields) {
-        console.log(`🔄 Updating UI for Record ID: ${recordId} with`, updatedFields);
-    
-        Object.keys(updatedFields).forEach(field => {
-            // Find the table cell or input that matches the field
-            const cell = document.querySelector(`[data-id="${recordId}"][data-field="${field}"]`);
-            const input = document.querySelector(`input[data-field="${field}"]`);
-    
-            if (cell) {
-                cell.textContent = updatedFields[field]; // Update table cell text
-            } else if (input) {
-                input.value = updatedFields[field]; // Update input field value
-            }
-        });
-    
-        console.log("✅ UI updated successfully without refreshing.");
-    }
-    
-    
 
+    
     // 🔹 Fetch Dropbox Token from Airtable
     async function fetchDropboxToken() {
         try {
@@ -463,11 +452,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             dropboxAppSecret = appSecret.fields["Dropbox App Secret"];
     
             if (record && record.fields["Dropbox Token"]) {
-                console.log("🔑 New Dropbox Token Retrieved:", record.fields["Dropbox Token"]);
                 dropboxAccessToken = record.fields["Dropbox Token"];
     
                 if (refreshToken && refreshToken.fields["Dropbox Refresh Token"]) {
-                    console.log("🔄 Found Dropbox Refresh Token. Refreshing...");
                     return await refreshDropboxAccessToken(
                         refreshToken.fields["Dropbox Refresh Token"], 
                         dropboxAppKey, 
@@ -518,7 +505,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
     
             const data = await response.json();
-            console.log("✅ New Dropbox Access Token:", data.access_token);
     
             // Store the new access token
             dropboxAccessToken = data.access_token;
@@ -551,9 +537,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
     
-    
-    
-
     // 🔹 Dropbox Image Upload
     async function uploadToDropbox(files, targetField) {
         if (!dropboxAccessToken) {
@@ -587,10 +570,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
     
-    
-    
-    
-
     // 🔹 Upload File to Dropbox
     async function uploadFileToDropbox(file) {
         console.log("🚀 Starting file upload to Dropbox...");
@@ -654,8 +633,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
     
-    
-
     // 🔹 Get Dropbox Shared Link
     async function getDropboxSharedLink(filePath) {
         const url = "https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings";
@@ -690,7 +667,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             return null;
         }
     }
-    
 
     async function fetchAndPopulateSubcontractors(recordId) {
         console.log("🚀 Fetching branch `b` for record:", recordId);
@@ -793,7 +769,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
     
-       
     function convertToDirectLink(sharedUrl) {
         if (sharedUrl.includes("dropbox.com")) {
             return sharedUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("?dl=0", "?raw=1");
@@ -804,10 +779,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById("subcontractor-dropdown").addEventListener("change", function () {
         console.log("📌 Subcontractor Selected:", this.value);
     });
-    
-    
-    
-    
+        
     function populateSubcontractorDropdown(subcontractors) {
         console.log("📌 Populating the subcontractor dropdown...");
         
@@ -856,9 +828,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log("✅ Subcontractor dropdown populated successfully.");
     }
     
-    
-    
-    
     // ✅ Call this function when the page loads
     document.addEventListener('DOMContentLoaded', populateSubcontractorDropdown);
     
@@ -869,12 +838,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (element) element.value = value || "";
     }
 
-    function getInputValue(id) {
-        const element = document.getElementById(id);
-        return element ? element.value : "";
-    }
-
-    function setCheckboxValue(id, value) {
+     function setCheckboxValue(id, value) {
         const element = document.getElementById(id);
         if (element) element.checked = value || false;
     }
