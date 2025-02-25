@@ -161,10 +161,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     
     
-   // 🔹 Populate Primary Fields
+// 🔹 Populate Primary Fields
 function populatePrimaryFields(job) {
     console.log("🛠 Populating UI with Record ID:", job["id"]);
-    
+
     // Ensure "Lot Number and Community/Neighborhood" field is correctly set
     if (job["Lot Number and Community/Neighborhood"]) {
         console.log("✅ Updating UI with Lot Number and Community/Neighborhood:", job["Lot Number and Community/Neighborhood"]);
@@ -180,48 +180,71 @@ function populatePrimaryFields(job) {
     setInputValue("description", job["Description of Issue"]);
     setInputValue("dow-completed", job["DOW to be Completed"]); 
     setInputValue("field-status", job["Status"]);
-    setInputValue("billable-status", job["Billable/ Non Billable"]);
-    setInputValue("homeowner-builder", job["Homeowner Builder pay"]);
-    setInputValue("billable-reason", job["Billable Reason (If Billable)"]);
-    setInputValue("subcontractor", job["Subcontractor"]);
-    setInputValue("materials-needed", job["Materials Needed"]);
-    setInputValue("subcontractor-payment", job["Subcontractor Payment"]); // ✅ Ensure number is set
 
-    console.log("✅ UI should now have updated values for:", job["Lot Number and Community/Neighborhood"]);
+    // **Check if Status is "Scheduled- Awaiting Field" and hide specific fields**
+    if (job["Status"] === "Scheduled- Awaiting Field") {
+        console.log("🚨 Job is 'Scheduled- Awaiting Field' - Hiding certain input fields.");
+
+        // Hide input fields, dropdowns, checkboxes, and images
+        hideElementById("billable-status");
+        hideElementById("homeowner-builder");
+        hideElementById("subcontractor");
+        hideElementById("materials-needed");
+        hideElementById("subcontractor-payment");
+        hideElementById("billable-reason");
+        hideElementById("field-review-not-needed");
+        hideElementById("field-review-needed");
+        hideElementById("field-tech-reviewed");
+        hideElementById("issue-pictures"); 
+
+        // **Additional elements to hide**
+        hideElementById("subcontractor-dropdown");
+        hideElementById("subcontractor-dropdown-label");
+        hideElementById("additional-fields-container");
+        hideElementById("message-container");
+
+
+    } else {
+        // ✅ Populate values if status is NOT "Scheduled- Awaiting Field"
+        setInputValue("billable-status", job["Billable/ Non Billable"]);
+        setInputValue("homeowner-builder", job["Homeowner Builder pay"]);
+        setInputValue("billable-reason", job["Billable Reason (If Billable)"]);
+        setInputValue("subcontractor", job["Subcontractor"]);
+        setInputValue("materials-needed", job["Materials Needed"]);
+        setInputValue("subcontractor-payment", job["Subcontractor Payment"]); // ✅ Ensure number is set
+
+        setCheckboxValue("field-review-not-needed", job["Field Review Not Needed"]);
+        setCheckboxValue("field-review-needed", job["Field Review Needed"]);
+        setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
+    }
 
     setCheckboxValue("job-completed", job["Job Completed"]);
-    setCheckboxValue("field-review-not-needed", job["Field Review Not Needed"]);
-
-    setCheckboxValue("field-review-needed", job["Field Review Needed"]);
-    setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
 
     // Load images from Airtable
     displayImages(job["Picture(s) of Issue"], "issue-pictures");
     displayImages(job["Completed Pictures"], "completed-pictures");
 
-    // If status is "Field Tech Review Needed", hide completed pictures and job completed elements
+    // **If status is "Field Tech Review Needed", hide completed pictures and job completed elements**
     if (job["Status"] === "Field Tech Review Needed") {
         console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
-
-        // Hide Completed Pictures section and file input
-        const completedPictures = document.getElementById("completed-pictures");
-        const uploadCompletedPicture = document.getElementById("upload-completed-picture");
-        if (completedPictures) completedPictures.style.display = "none";
-        if (uploadCompletedPicture) uploadCompletedPicture.style.display = "none";
-
-        // Hide Job Completed checkbox
-        const jobCompleted = document.getElementById("job-completed");
-        if (jobCompleted) jobCompleted.style.display = "none";
-
-        // Hide the Job Completed label
-        const jobCompletedLabel = document.getElementById("job-completed-label");
-        if (jobCompletedLabel) jobCompletedLabel.style.display = "none";
-
-        // Hide the Completed Pictures heading
-        const completedPicturesHeading = document.getElementById("completed-pictures-heading");
-        if (completedPicturesHeading) completedPicturesHeading.style.display = "none";
+        hideElementById("completed-pictures");
+        hideElementById("upload-completed-picture");
+        hideElementById("job-completed");
+        hideElementById("job-completed-label");
+        hideElementById("completed-pictures-heading");
     }
 }
+
+// ✅ Utility function to hide elements safely
+function hideElementById(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.display = "none";
+    } else {
+        console.warn(`⚠️ Element not found: ${elementId}`);
+    }
+}
+
 
     
      
@@ -322,11 +345,6 @@ function displayImages(files, containerId) {
     }
 }
 
-
-
-
-
-
     async function testFetchImages() {
         try {
             const recordData = await fetchAirtableRecord(airtableTableName, recordId);
@@ -344,34 +362,7 @@ function displayImages(files, containerId) {
     
     testFetchImages();
     
-    function addDeleteButton(containerId, targetField) {
-        const container = document.getElementById(containerId);
     
-        // Remove existing button to prevent duplicates
-        const existingButton = document.getElementById(`${containerId}-delete-btn`);
-        if (existingButton) {
-            existingButton.remove();
-        }
-    
-        // Create delete button
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "Delete Selected";
-        deleteButton.id = `${containerId}-delete-btn`;
-        deleteButton.style.display = "block";
-        deleteButton.style.margin = "10px auto";
-        deleteButton.style.padding = "8px 12px";
-        deleteButton.style.background = "red";
-        deleteButton.style.color = "white";
-        deleteButton.style.border = "none";
-        deleteButton.style.cursor = "pointer";
-        deleteButton.style.borderRadius = "5px";
-        deleteButton.style.fontSize = "14px";
-    
-        deleteButton.addEventListener("click", () => deleteSelectedImages(targetField, containerId));
-    
-        // Append delete button to container
-        container.appendChild(deleteButton);
-    }
     
     async function deleteSelectedImages(targetField, containerId) {
         console.log(`🗑️ Deleting selected images from: ${targetField}`);
