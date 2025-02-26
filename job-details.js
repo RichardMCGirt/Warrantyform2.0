@@ -184,8 +184,6 @@ function populatePrimaryFields(job) {
     // **Check if Status is "Scheduled- Awaiting Field" and hide specific fields**
     if (job["Status"] === "Scheduled- Awaiting Field") {
         console.log("🚨 Job is 'Scheduled- Awaiting Field' - Hiding certain input fields.");
-
-        // Hide input fields, dropdowns, checkboxes, and images
         hideElementById("billable-status");
         hideElementById("homeowner-builder");
         hideElementById("subcontractor");
@@ -193,18 +191,23 @@ function populatePrimaryFields(job) {
         hideElementById("subcontractor-payment");
         hideElementById("billable-reason");
         hideElementById("field-review-not-needed");
+        hideElementById("subcontractor-dropdown1-label");
+        hideElementById("subcontractor-dropdown1");
         hideElementById("field-review-needed");
         hideElementById("field-tech-reviewed");
         hideElementById("issue-pictures"); 
-
-        // **Additional elements to hide**
         hideElementById("subcontractor-dropdown");
-        hideElementById("subcontractor-dropdown-label");
         hideElementById("additional-fields-container");
         hideElementById("message-container");
-
-
+        hideElementById("subcontractor-dropdown1");
     } else {
+        console.log("✅ Status is NOT 'Scheduled- Awaiting Field' - Showing all fields.");
+        showElement("job-completed");
+        showElement("job-completed-label");
+    
+
+
+
         // ✅ Populate values if status is NOT "Scheduled- Awaiting Field"
         setInputValue("billable-status", job["Billable/ Non Billable"]);
         setInputValue("homeowner-builder", job["Homeowner Builder pay"]);
@@ -225,7 +228,7 @@ function populatePrimaryFields(job) {
     displayImages(job["Completed Pictures"], "completed-pictures");
 
     // **If status is "Field Tech Review Needed", hide completed pictures and job completed elements**
-    if (job["Status"] === "Field Tech Review Needed") {
+    if (job["Status"] === "Field Tech Review Needed" && job["Status"] !== "Scheduled- Awaiting Field") {
         console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
         hideElementById("completed-pictures");
         hideElementById("upload-completed-picture");
@@ -233,6 +236,7 @@ function populatePrimaryFields(job) {
         hideElementById("job-completed-label");
         hideElementById("completed-pictures-heading");
     }
+    
 }
 
 // ✅ Utility function to hide elements safely
@@ -245,6 +249,10 @@ function hideElementById(elementId) {
     }
 }
 
+function showElement(id) {
+    const element = document.getElementById(id);
+    if (element) element.style.removeProperty("display");
+}
 
     
      

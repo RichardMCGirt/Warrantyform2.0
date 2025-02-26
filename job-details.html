@@ -40,11 +40,18 @@
 <label>DOW to be Completed:</label>
 <input type="text" id="dow-completed" data-field="DOW to be Completed">
 
-<label for="subcontractor-dropdown">Select a Subcontractor:</label>
+<label id="subcontractor-dropdown1-label" for="subcontractor-dropdown1">Select a Subcontractor:</label>
 <select id="subcontractor-dropdown" data-field="Subcontractor">
     <option value="">Select a Subcontractor...</option>
 </select>
 
+
+<h3 id="completed-pictures-heading">Completed Pictures:</h3>
+<div id="completed-pictures"></div>
+<input type="file" id="upload-completed-picture" multiple>
+
+<label id="job-completed-label">Job Completed:</label>
+<input type="checkbox" id="job-completed" data-field="Job Completed">
 
 
 
@@ -110,10 +117,7 @@
             <div id="issue-pictures"></div>
             <input type="file" id="upload-issue-picture" multiple>
 
-            <h3 id="completed-pictures-heading">Completed Pictures:</h3>
-<div id="completed-pictures"></div>
-<input type="file" id="upload-completed-picture" multiple>
-
+   
 
 
 <div class="form-group">
@@ -121,8 +125,6 @@
     <input type="checkbox" id="field-tech-reviewed">
   </div>
 
-  <label id="job-completed-label">Job Completed:</label>
-  <input type="checkbox" id="job-completed" data-field="Job Completed">
 
 
 
