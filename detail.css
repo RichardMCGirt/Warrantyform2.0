@@ -1,58 +1,62 @@
+/* ============================= */
 /* General Styles */
+/* ============================= */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
     margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
 }
 
-input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    margin: 10px;
-}
-
-
-
+/* ============================= */
 /* Navigation */
+/* ============================= */
 nav {
-    width: 100%;
     background-color: #007bff;
-    padding: 15px 20px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: left;
+    padding: 10px;
 }
 
-nav a {
+nav a.back-button {
     color: white;
     text-decoration: none;
     font-size: 16px;
-    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 5px;
+    display: inline-block;
 }
 
+nav a.back-button:hover {
+    background-color: #0056b3;
+}
+
+/* ============================= */
 /* Job Details Container */
-.job-details-container {
-    background: white;
-    width: 100%;
-    max-width: 700px;
-    padding: 25px;
-    margin-top: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-}
-
-/* Form Header */
-.job-details-container h2 {
+/* ============================= */
+#job-name {
     text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 24px;
+    font-size: 24px; /* Adjust size as needed */
+    font-weight: bold;
+    margin: 20px 0;
+    background-color: transparent !important;
+    border: none !important;
 }
 
-/* Form Fields */
+
+.job-details-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================= */
+/* Form Styling */
+/* ============================= */
+
+
 form {
     display: flex;
     flex-direction: column;
@@ -60,330 +64,146 @@ form {
 
 label {
     font-weight: bold;
-    margin: 12px 0 5px;
-    color: #555;
+    margin-top: 10px;
     display: block;
 }
 
-/* Input & Textarea Styling */
-input,
+input[type="text"],
+input[type="email"],
 textarea,
 select {
     width: 100%;
-    padding: 12px;
+    font-size: 16px;
+    padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 16px;
-    transition: border-color 0.3s ease-in-out;
-}
-
-#description {
-    width: 100%;
+    border-radius: 5px;
     box-sizing: border-box;
-  }
-
-input:focus,
-textarea:focus,
-select:focus {
-    border-color: #007bff;
-    outline: none;
 }
 
-input:disabled,
-textarea:disabled {
-    background: transparent; /* Keeps background transparent */
-    color: #6c757d; /* Muted text color */
-    cursor: not-allowed;
-    max-width: 60%;
-    border: none !important; /* Ensures no border */
-    opacity: 1; /* Ensures full visibility */
-    padding: 8px; /* Adds spacing inside fields */
-    font-weight: bold; /* Makes text stand out */
-}
-
-label {
-    font-weight: bold; /* Makes labels more prominent */
-    display: block; /* Ensures proper spacing */
-    margin-bottom: 5px;
-}
-
-textarea:disabled {
-    resize: none; /* Prevents resizing */
-    min-height: 100px; /* Ensures enough space for text */
-}
-
-.file-input-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 10px;
-    border: 2px dashed #ccc;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-    text-align: center;
-    cursor: pointer;
-    transition: border 0.3s ease;
-}
-
-.file-input-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 10px;
-    border: 2px dashed #ccc;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-    text-align: center;
-    cursor: pointer;
-    transition: border 0.3s ease;
-}
-
-.file-input-container:hover {
-    border-color: #007bff;
-}
-
-.file-input-container label {
-    font-size: 16px;
-    font-weight: bold;
-    color: #555;
-    cursor: pointer;
-}
-
-.file-input-container input {
+#field-status, 
+label[for="field-status"] {
     display: none;
 }
 
-.file-preview {
-    margin-top: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
 
-.file-preview img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
-
-
-.file-input-container:hover {
-    border-color: #007bff;
-}
-
-.file-input-container label {
-    font-size: 16px;
-    font-weight: bold;
-    color: #555;
-    cursor: pointer;
-}
-
-.file-input-container input {
-    display: none;
-}
-
-.file-preview {
-    margin-top: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.file-preview img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
-
-
-
-/* Textarea Styling */
 textarea {
-    resize: vertical;
     min-height: 100px;
+    resize: vertical;
 }
 
-/* Dropdown Select */
-select {
-    width: 100%; /* Ensures it spans the full width of the container */
-    font-size: 16px; /* Prevents zooming issues on iOS */
-    padding: 10px; /* Provides a comfortable tap area */
-    border: 1px solid #ccc; /* Adds a subtle border */
-    border-radius: 5px; /* Rounds the edges slightly for a modern look */
-    background-color: #fff; /* Ensures good contrast */
-    box-sizing: border-box; /* Includes padding in width calculation */
-    -webkit-appearance: none; /* Removes default iOS styling */
-    -moz-appearance: none; /* Removes default Firefox styling */
-    appearance: none; /* Removes default browser styling */
+input[disabled],
+textarea[disabled] {
+    cursor: not-allowed;
+    border: none !important;
+    background-color: transparent !important;
 }
 
-/* Add a custom dropdown arrow */
-select::-ms-expand {
-    display: none; /* Hides default dropdown arrow in IE */
-}
-
-/* Optional: Add a dropdown arrow using a background image */
-select {
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M7 10l5 5 5-5z"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 16px;
-    padding-right: 30px; /* Space for the arrow */
-}
-
-/* Ensure dropdowns are easily clickable */
-label {
-    display: block;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-
-/* Grouped Form Fields */
-.form-group {
-    margin-bottom: 15px;
-}
-
-/* Back Button */
-.back-button {
-    display: inline-block;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    text-decoration: none;
-    color: white;
-    background-color: #007BFF;
+/* Address Styling */
+input#address {
+    cursor: pointer;
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
     border-radius: 8px;
-    transition: background 0.3s ease, transform 0.2s ease;
-    box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    font-size: 18px;
+    padding: 12px;
+    max-width: 400px;
+    outline: none;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease-in-out;
 }
 
-.back-button:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
+input#address:hover {
+    background-color: #e9ecef;
 }
 
-.back-button:active {
-    transform: scale(0.95);
-    background-color: #004494;
+/* ============================= */
+/* Dropdowns */
+/* ============================= */
+select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #fff;
+    cursor: pointer;
 }
 
-/* File Upload Section */
-#upload-issue-picture,
-#upload-completed-picture {
+/* ============================= */
+/* Checkboxes */
+/* ============================= */
+input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+/* Align checkbox labels */
+.form-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ============================= */
+/* File Input Styling */
+/* ============================= */
+.file-input-container {
+    margin-top: 15px;
+}
+
+input[type="file"] {
+    display: block;
+    margin-top: 5px;
+}
+
+/* ============================= */
+/* File Preview */
+/* ============================= */
+.file-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-top: 10px;
 }
 
-/* Save Button */
+.file-preview img {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+/* ============================= */
+/* Buttons */
+/* ============================= */
 button {
-    background-color: #28a745;
-    color: white;
+    width: 100%;
     padding: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background-color: #007bff;
     border: none;
-    font-size: 16px;
     border-radius: 5px;
     cursor: pointer;
-    margin-top: 20px;
-    transition: background 0.3s ease-in-out;
+    margin-top: 15px;
+    transition: background-color 0.2s ease-in-out;
 }
 
 button:hover {
-    background-color: #218838;
+    background-color: #0056b3;
 }
 
-button:active {
-    background-color: #1e7e34;
-}
-
-/* Hide Status Field */
-label[for="field-status"],
-#field-status {
-    display: none;
-}
-
+/* ============================= */
 /* Responsive Design */
-@media (max-width: 768px) {
+/* ============================= */
+@media (max-width: 600px) {
     .job-details-container {
-        width: 95%;
-        padding: 20px;
-    }
-
-    input,
-    textarea,
-    select {
-        font-size: 14px;
-        padding: 10px;
-    }
-}
-
-/* iPhone 12 Specific Styles */
-@media screen and (max-width: 390px) {
-    body {
-        padding: 10px;
-    }
-
-    .job-details-container {
-        width: 100%;
-        max-width: 370px;
+        width: 90%;
         padding: 15px;
-        margin-top: 15px;
-    }
-
-    nav {
-        padding: 10px;
-    }
-
-    nav a {
-        font-size: 14px;
-    }
-
-    input,
-    textarea,
-    select {
-        font-size: 13px;
-        padding: 8px;
     }
 
     button {
+        font-size: 16px;
         padding: 10px;
-        font-size: 14px;
-    }
-
-    .back-button {
-        padding: 10px 15px;
-        font-size: 14px;
-    }
-}
-
-@media screen and (max-width: 390px) {
-    input,
-    textarea,
-    select {
-        font-size: 13px;
-        padding: 8px;
-    }
-}
-
-/* Override default disabled input styling */
-input:disabled, textarea:disabled {
-    color: #333 !important; /* Darker color */
-    opacity: 1 !important; /* Ensures full opacity */
-    background-color: #f9f9f9 !important; /* Light background for contrast */
-    border: 1px solid #ccc !important; /* Add a border for better visibility */
-}
-
-/* Ensure better visibility on mobile */
-@media (max-width: 768px) {
-    input:disabled, textarea:disabled {
-        color: #222 !important; /* Even darker shade for mobile */
-        font-weight: bold; /* Makes text stand out */
     }
 }
