@@ -301,7 +301,6 @@ function populatePrimaryFields(job) {
 
 } 
 
-
 // Function to hide an element safely
 function hideElementById(elementId) {
     const element = document.getElementById(elementId);
@@ -321,9 +320,7 @@ function showElement(elementId) {
         console.warn(`⚠️ Element not found: ${elementId}`);
     }
 }
-
-
-     
+ 
 async function loadJobDetails(recordId) {
     try {
         console.log("📡 Fetching job details for:", recordId);
@@ -341,7 +338,6 @@ async function loadJobDetails(recordId) {
 
             populatePrimaryFields(jobData.fields);
         }
-        checkFieldTechReviewedState();
 
     } catch (error) {
         console.error("❌ Error fetching job details:", error);
@@ -498,49 +494,7 @@ function displayImages(files, containerId) {
         }
     });
 
-    function checkFieldTechReviewedState() {
-        const fieldTechReviewed = document.getElementById("field-tech-reviewed");
-        const fieldReviewNotNeeded = document.getElementById("field-review-not-needed");
-        const fieldReviewNeeded = document.getElementById("field-review-needed");
-        const issuePicturesContainer = document.getElementById("issue-pictures");
-        const fieldStatus = document.getElementById("field-status");
-    
-        if (!fieldTechReviewed) {
-            console.warn("⚠️ Field Tech Reviewed checkbox not found.");
-            return;
-        }
-    
-        // ✅ Ensure at least one checkbox is checked
-        const isFieldReviewChecked = fieldReviewNotNeeded.checked || fieldReviewNeeded.checked;
-    
-        // ✅ Ensure at least one image is uploaded
-        const hasImages = issuePicturesContainer && issuePicturesContainer.children.length > 0;
-    
-        // ✅ Check if status is "Field Tech Review Needed"
-        const isFieldTechReviewNeeded = fieldStatus && fieldStatus.value.trim() === "Field Tech Review Needed";
-    
-        // ✅ Disable Field Tech Reviewed checkbox if any condition is not met
-        const shouldDisable = !isFieldReviewChecked || !hasImages || isFieldTechReviewNeeded;
-        fieldTechReviewed.disabled = shouldDisable;
-    
-        console.log(`🔄 Field Tech Reviewed Checkbox State: ${shouldDisable ? "DISABLED" : "ENABLED"}`);
-    }
-    
-    // ✅ Call function when DOM loads and values change
-    document.addEventListener("DOMContentLoaded", function () {
-        checkFieldTechReviewedState(); // Initial check when the page loads
-    
-        document.getElementById("field-review-not-needed").addEventListener("change", checkFieldTechReviewedState);
-        document.getElementById("field-review-needed").addEventListener("change", checkFieldTechReviewedState);
-    
-        document.getElementById("issue-pictures").addEventListener("DOMNodeInserted", checkFieldTechReviewedState);
-        document.getElementById("issue-pictures").addEventListener("DOMNodeRemoved", checkFieldTechReviewedState);
-    
-        const fieldStatus = document.getElementById("field-status");
-        if (fieldStatus) {
-            fieldStatus.addEventListener("change", checkFieldTechReviewedState);
-        }
-    });
+
     
     
     
