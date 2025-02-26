@@ -112,47 +112,22 @@ document.addEventListener("DOMContentLoaded", async function () {
     // ✅ Handle Dropbox Image Upload
     document.getElementById("upload-issue-picture").addEventListener("change", async function (event) {
         const files = event.target.files;
-        const previewContainer = document.getElementById('issue-pictures');
-        previewContainer.innerHTML = ''; // Clear previous previews
-    
+       
         // Upload to Dropbox
         await uploadToDropbox(files, "Picture(s) of Issue");
     
-        // Display image previews
-        Array.from(files).forEach(file => {
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    previewContainer.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+    
     });
     
 
     document.getElementById("upload-completed-picture").addEventListener("change", async function (event) {
         const files = event.target.files;
-        const previewContainer = document.getElementById('completed-pictures');
-        previewContainer.innerHTML = ''; // Clear previous previews
+        
     
         // Upload to Dropbox
-        await uploadToDropbox(files, "Completed Pictures");
+        await uploadToDropbox(files, "Completed  Pictures");
     
-        // Display image previews
-        Array.from(files).forEach(file => {
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    previewContainer.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+       
     });
     
 
@@ -275,8 +250,7 @@ function populatePrimaryFields(job) {
         setInputValue("materials-needed", job["Materials Needed"]);
         setInputValue("subcontractor-payment", job["Subcontractor Payment"]); // ✅ Ensure number is set
 
-        setCheckboxValue("field-review-not-needed", job["Field Review Not Needed"]);
-        setCheckboxValue("field-review-needed", job["Field Review Needed"]);
+   
         setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
     }
 
@@ -381,16 +355,6 @@ function displayImages(files, containerId) {
                 pdfLink.style.textDecoration = "underline";
                 pdfLink.style.marginTop = "5px";
 
-                // Create a preview iframe
-                const pdfViewer = document.createElement("iframe");
-                pdfViewer.src = fileUrl;
-                pdfViewer.width = "100%";  
-                pdfViewer.height = "200px"; 
-                pdfViewer.style.border = "1px solid #ccc";
-                pdfViewer.style.borderRadius = "5px";
-                pdfViewer.style.backgroundColor = "#fff";
-
-                wrapperDiv.appendChild(pdfViewer);
                 wrapperDiv.appendChild(pdfLink);
             } else {
                 const imgElement = document.createElement("img");
