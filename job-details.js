@@ -266,18 +266,22 @@ function populatePrimaryFields(job) {
     displayImages(job["Completed Pictures"], "completed-pictures");
 
     // **If status is "Field Tech Review Needed", hide completed pictures and job completed elements**
-    if (job["Status"] === "Field Tech Review Needed" && job["Status"] !== "Scheduled- Awaiting Field") {
+    if (job["Status"] === "Field Tech Review Needed") {
         console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
         hideElementById("completed-pictures");
         hideElementById("upload-completed-picture");
         hideElementById("job-completed");
         hideElementById("job-completed-label");
         hideElementById("completed-pictures-heading");
+        hideElementById("upload-completed-picture"); // Hide file input
+        hideElementById("file-input-container"); // ✅ Hides the file input container
     }
-    
-}
+    showElement("save-job"); 
 
-// ✅ Utility function to hide elements safely
+} 
+
+
+// Function to hide an element safely
 function hideElementById(elementId) {
     const element = document.getElementById(elementId);
     if (element) {
@@ -287,12 +291,17 @@ function hideElementById(elementId) {
     }
 }
 
-function showElement(id) {
-    const element = document.getElementById(id);
-    if (element) element.style.removeProperty("display");
+// Function to show an element safely
+function showElement(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.display = "block"; // Ensures visibility
+    } else {
+        console.warn(`⚠️ Element not found: ${elementId}`);
+    }
 }
 
-    
+
      
 async function loadJobDetails(recordId) {
     try {
@@ -319,6 +328,12 @@ async function loadJobDetails(recordId) {
     
 function displayImages(files, containerId) {
     const container = document.getElementById(containerId);
+    
+    if (!container) {
+        console.warn(`⚠️ Warning: Element with ID '${containerId}' not found. Skipping image display.`);
+        return; // Prevent further execution if the container is missing
+    }
+
     container.innerHTML = ""; // Clear previous files
 
     console.log(`📡 Displaying files in: ${containerId}`, files);
@@ -338,10 +353,9 @@ function displayImages(files, containerId) {
             wrapperDiv.style.textAlign = "center";
 
             if (file.type === "application/pdf") {
-                // ✅ Create a direct clickable link for PDFs
                 const pdfLink = document.createElement("a");
                 pdfLink.href = fileUrl;
-                pdfLink.target = "_blank"; // Opens in a new tab
+                pdfLink.target = "_blank";
                 pdfLink.textContent = "Open PDF";
                 pdfLink.style.display = "block";
                 pdfLink.style.color = "blue";
@@ -357,24 +371,17 @@ function displayImages(files, containerId) {
                 pdfViewer.style.borderRadius = "5px";
                 pdfViewer.style.backgroundColor = "#fff";
 
-                // If the PDF fails to load, the user can still click the link
-                pdfViewer.onerror = () => {
-                    console.warn("⚠️ PDF cannot be previewed, use the direct link:", fileUrl);
-                };
-
                 wrapperDiv.appendChild(pdfViewer);
                 wrapperDiv.appendChild(pdfLink);
             } else {
-                // ✅ Display images and make them clickable
                 const imgElement = document.createElement("img");
                 imgElement.src = fileUrl;
                 imgElement.classList.add("uploaded-image");
                 imgElement.style.maxWidth = "300px";
                 imgElement.style.borderRadius = "5px";
                 imgElement.style.border = "1px solid #ddd";
-                imgElement.style.cursor = "pointer"; // Indicate clickability
+                imgElement.style.cursor = "pointer";
 
-                // Ensure image opens in a new tab on click
                 imgElement.addEventListener("click", function () {
                     console.log("🖼️ Image clicked:", fileUrl);
                     window.open(fileUrl, "_blank");
@@ -390,6 +397,7 @@ function displayImages(files, containerId) {
         container.innerHTML = "<p>No files available.</p>";
     }
 }
+
 
     async function testFetchImages() {
         try {

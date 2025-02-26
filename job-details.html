@@ -50,20 +50,6 @@
 </select>
 
 
-<div class="file-input-container">
-    <label for="upload-completed-picture">📸 Upload Completed Pictures</label>
-    <input type="file" id="upload-completed-picture" multiple accept="image/*">
-</div>
-
-<!-- Preview area for uploaded images -->
-<h3 id="completed-pictures-heading">Completed Pictures:</h3>
-<div id="completed-pictures" class="file-preview"></div>
-
-
-<label id="job-completed-label">Job Completed:</label>
-<input type="checkbox" id="job-completed" data-field="Job Completed">
-
-
 
 <div id="additional-fields-container">
     <div class="form-group">
@@ -119,15 +105,20 @@
 
     <div class="form-group">
         <label for="materials-needed">Materials Needed</label>
-        <textarea id="materials-needed" name="materials-needed" data-field="Materials Needed"></textarea>
-    </div>
+        <textarea id="materials-needed" name="materials-needed" data-field="Materials Needed"
+        style="width: 100%; max-width: 100%; font-size: 16px; padding: 10px; 
+               box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; 
+               min-height: 100px; resize: vertical;"
+        autocomplete="off" autocorrect="on" autocapitalize="sentences" spellcheck="true"></textarea>
+        </div>
 
 
     <div class="file-input-container">
-        <label for="upload-issue-picture">📷 Upload Issue Pictures</label>
+        <label for="upload-issue-picture">Upload Issue Pictures</label>
         <input type="file" id="upload-issue-picture" multiple accept="image/*">
     </div>
-    
+    <div id="issue-pictures" class="file-preview"></div>
+
     <!-- Preview area for uploaded images -->
     <div id="file-preview" class="file-preview"></div>
     
@@ -138,10 +129,25 @@
     <input type="checkbox" id="field-tech-reviewed">
   </div>
 
+</div>
+
+  <div id="file-input-container">
+    <label for="upload-completed-picture">Upload Completed Pictures</label>
+    <input type="file" id="upload-completed-picture" multiple accept="image/*">
+</div>
 
 
+<!-- Preview area for uploaded images -->
+<h3 id="completed-pictures-heading">Completed Pictures:</h3>
+<div id="completed-pictures" class="file-preview"></div>
 
-            <button type="button" id="save-job">Save Changes</button>
+
+<label id="job-completed-label">Job Completed:</label>
+<input type="checkbox" id="job-completed" data-field="Job Completed">
+
+
+<button type="button" id="save-job">Save Changes</button>
+
         </form>
     </div>
 
