@@ -84,12 +84,50 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // ✅ Handle Dropbox Image Upload
     document.getElementById("upload-issue-picture").addEventListener("change", async function (event) {
-        await uploadToDropbox(event.target.files, "Picture(s) of Issue");
+        const files = event.target.files;
+        const previewContainer = document.getElementById('issue-pictures');
+        previewContainer.innerHTML = ''; // Clear previous previews
+    
+        // Upload to Dropbox
+        await uploadToDropbox(files, "Picture(s) of Issue");
+    
+        // Display image previews
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     });
+    
 
     document.getElementById("upload-completed-picture").addEventListener("change", async function (event) {
-        await uploadToDropbox(event.target.files, "Completed Pictures");
+        const files = event.target.files;
+        const previewContainer = document.getElementById('completed-pictures');
+        previewContainer.innerHTML = ''; // Clear previous previews
+    
+        // Upload to Dropbox
+        await uploadToDropbox(files, "Completed Pictures");
+    
+        // Display image previews
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     });
+    
 
     // 🔹 Fetch Airtable Record Function
     async function fetchAirtableRecord(tableName, recordId) {

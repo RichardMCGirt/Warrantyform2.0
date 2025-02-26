@@ -73,10 +73,14 @@ select {
     padding: 12px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    font-size: 14px;
-    background: #f9f9f9;
+    font-size: 16px;
     transition: border-color 0.3s ease-in-out;
 }
+
+#description {
+    width: 100%;
+    box-sizing: border-box;
+  }
 
 input:focus,
 textarea:focus,
@@ -87,10 +91,119 @@ select:focus {
 
 input:disabled,
 textarea:disabled {
-    background: #e9ecef;
+    background: transparent; /* Keeps background transparent */
+    color: #6c757d; /* Muted text color */
     cursor: not-allowed;
     max-width: 60%;
+    border: none !important; /* Ensures no border */
+    opacity: 1; /* Ensures full visibility */
+    padding: 8px; /* Adds spacing inside fields */
+    font-weight: bold; /* Makes text stand out */
 }
+
+label {
+    font-weight: bold; /* Makes labels more prominent */
+    display: block; /* Ensures proper spacing */
+    margin-bottom: 5px;
+}
+
+textarea:disabled {
+    resize: none; /* Prevents resizing */
+    min-height: 100px; /* Ensures enough space for text */
+}
+
+.file-input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    text-align: center;
+    cursor: pointer;
+    transition: border 0.3s ease;
+}
+
+.file-input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    text-align: center;
+    cursor: pointer;
+    transition: border 0.3s ease;
+}
+
+.file-input-container:hover {
+    border-color: #007bff;
+}
+
+.file-input-container label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+}
+
+.file-input-container input {
+    display: none;
+}
+
+.file-preview {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.file-preview img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+
+.file-input-container:hover {
+    border-color: #007bff;
+}
+
+.file-input-container label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+}
+
+.file-input-container input {
+    display: none;
+}
+
+.file-preview {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.file-preview img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+
 
 /* Textarea Styling */
 textarea {
@@ -100,8 +213,39 @@ textarea {
 
 /* Dropdown Select */
 select {
-    cursor: pointer;
+    width: 100%; /* Ensures it spans the full width of the container */
+    font-size: 16px; /* Prevents zooming issues on iOS */
+    padding: 10px; /* Provides a comfortable tap area */
+    border: 1px solid #ccc; /* Adds a subtle border */
+    border-radius: 5px; /* Rounds the edges slightly for a modern look */
+    background-color: #fff; /* Ensures good contrast */
+    box-sizing: border-box; /* Includes padding in width calculation */
+    -webkit-appearance: none; /* Removes default iOS styling */
+    -moz-appearance: none; /* Removes default Firefox styling */
+    appearance: none; /* Removes default browser styling */
 }
+
+/* Add a custom dropdown arrow */
+select::-ms-expand {
+    display: none; /* Hides default dropdown arrow in IE */
+}
+
+/* Optional: Add a dropdown arrow using a background image */
+select {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 30px; /* Space for the arrow */
+}
+
+/* Ensure dropdowns are easily clickable */
+label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
 
 /* Grouped Form Fields */
 .form-group {

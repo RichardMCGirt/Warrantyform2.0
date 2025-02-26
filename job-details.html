@@ -18,6 +18,7 @@
 
             <label for="field-status">Status</label>
             <input type="text" id="field-status" name="field-status" disabled>
+
             <label>Lot Number and Community:</label>
             <input type="text" id="job-name" disabled>
 
@@ -38,7 +39,10 @@
 
 
 <label>DOW to be Completed:</label>
-<input type="text" id="dow-completed" data-field="DOW to be Completed">
+<input type="text" id="dow-completed" data-field="DOW to be Completed" 
+       style="width: 100%; max-width: 100%; font-size: 16px; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px;"
+       autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false">
+
 
 <label id="subcontractor-dropdown1-label" for="subcontractor-dropdown1">Select a Subcontractor:</label>
 <select id="subcontractor-dropdown" data-field="Subcontractor">
@@ -46,9 +50,15 @@
 </select>
 
 
+<div class="file-input-container">
+    <label for="upload-completed-picture">📸 Upload Completed Pictures</label>
+    <input type="file" id="upload-completed-picture" multiple accept="image/*">
+</div>
+
+<!-- Preview area for uploaded images -->
 <h3 id="completed-pictures-heading">Completed Pictures:</h3>
-<div id="completed-pictures"></div>
-<input type="file" id="upload-completed-picture" multiple>
+<div id="completed-pictures" class="file-preview"></div>
+
 
 <label id="job-completed-label">Job Completed:</label>
 <input type="checkbox" id="job-completed" data-field="Job Completed">
@@ -113,11 +123,14 @@
     </div>
 
 
-            <h3>Picture(s) of Issue:</h3>
-            <div id="issue-pictures"></div>
-            <input type="file" id="upload-issue-picture" multiple>
-
-   
+    <div class="file-input-container">
+        <label for="upload-issue-picture">📷 Upload Issue Pictures</label>
+        <input type="file" id="upload-issue-picture" multiple accept="image/*">
+    </div>
+    
+    <!-- Preview area for uploaded images -->
+    <div id="file-preview" class="file-preview"></div>
+    
 
 
 <div class="form-group">
