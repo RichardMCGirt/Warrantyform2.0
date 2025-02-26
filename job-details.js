@@ -1,3 +1,66 @@
+
+function openMapApp() {
+    const addressInput = document.getElementById("address");
+
+    if (!addressInput || !addressInput.value) {
+        alert("⚠️ No address available.");
+        return;
+    }
+
+    const address = encodeURIComponent(addressInput.value.trim());
+    const userAgent = navigator.userAgent.toLowerCase();
+
+    // Automatically open Apple Maps on iOS
+    if (userAgent.match(/(iphone|ipad|ipod)/i)) {
+        window.location.href = `maps://maps.apple.com/?q=${address}`;
+        return;
+    }
+
+    // Automatically open Google Maps on Android
+    if (userAgent.match(/android/i)) {
+        window.location.href = `geo:0,0?q=${address}`;
+        return;
+    }
+
+    // Create a modal for other devices (Desktop, etc.)
+    const modal = document.createElement("div");
+    modal.id = "mapModal";
+    modal.style.position = "fixed";
+    modal.style.top = "50%";
+    modal.style.left = "50%";
+    modal.style.transform = "translate(-50%, -50%)";
+    modal.style.background = "#fff";
+    modal.style.padding = "20px";
+    modal.style.borderRadius = "10px";
+    modal.style.boxShadow = "0px 4px 6px rgba(0,0,0,0.1)";
+    modal.style.zIndex = "1000";
+    modal.style.textAlign = "center";
+
+    // Modal content
+    modal.innerHTML = `
+        <h3>Select Navigation App</h3>
+        <button id="googleMapsBtn" style="padding:10px; margin:5px; background:#4285F4; color:white; border:none; border-radius:5px; cursor:pointer;">Google Maps</button>
+        <button id="wazeBtn" style="padding:10px; margin:5px; background:#1DA1F2; color:white; border:none; border-radius:5px; cursor:pointer;">Waze</button>
+        <button id="closeModalBtn" style="padding:10px; margin:5px; background:#d9534f; color:white; border:none; border-radius:5px; cursor:pointer;">Close</button>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Event listeners for buttons
+    document.getElementById("googleMapsBtn").addEventListener("click", function () {
+        window.location.href = `https://www.google.com/maps/search/?api=1&query=${address}`;
+    });
+
+    document.getElementById("wazeBtn").addEventListener("click", function () {
+        window.location.href = `https://waze.com/ul?q=${address}`;
+    });
+
+    document.getElementById("closeModalBtn").addEventListener("click", function () {
+        document.body.removeChild(modal);
+    });
+}
+
+
 document.addEventListener("DOMContentLoaded", async function () {
     console.log("🚀 Page Loaded: JavaScript execution started!");
     
@@ -581,6 +644,8 @@ function displayImages(files, containerId) {
             return null;
         }
     }
+    
+ 
     
 
     async function refreshDropboxAccessToken(refreshToken, dropboxAppKey, dropboxAppSecret) {

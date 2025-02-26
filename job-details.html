@@ -26,8 +26,26 @@
             <input type="text" id="field-tech" disabled>
 
             <label>Address:</label>
-            <input type="text" id="address" disabled>
+            <input type="text" id="address" readonly 
+            style="
+                cursor: pointer; 
+                background-color: #f8f9fa; 
+                border: 1px solid #ccc; 
+                border-radius: 8px; 
+                font-size: 18px; 
+                text-align: center; 
+                padding: 12px; 
+                width: 100%; 
+                max-width: 400px; 
+                outline: none;
+                box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+                transition: background-color 0.2s ease-in-out;"
+            onclick="openMapApp()"
+            onmouseover="this.style.backgroundColor='#e9ecef'"
+            onmouseout="this.style.backgroundColor='#f8f9fa'">
+            
 
+     
             <label>Homeowner Name:</label>
             <input type="text" id="homeowner-name" disabled>
 
