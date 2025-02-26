@@ -457,7 +457,7 @@ function displayImages(files, containerId) {
         });
     } else {
         console.warn("⚠️ No files found.");
-        container.innerHTML = "<p>No files available.</p>";
+        container.innerHTML = "<p></p>";
     }
 }
 

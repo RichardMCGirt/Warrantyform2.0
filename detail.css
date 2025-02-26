@@ -13,7 +13,7 @@ body {
 /* Navigation */
 /* ============================= */
 nav {
-    background-color: #007bff;
+    background-color: #01070c;
     padding: 10px;
 }
 
@@ -35,12 +35,14 @@ nav a.back-button:hover {
 /* ============================= */
 #job-name {
     text-align: center;
-    font-size: 24px; /* Adjust size as needed */
+    font-size: 28px; /* Adjust size as needed */
     font-weight: bold;
     margin: 20px 0;
     background-color: transparent !important;
     border: none !important;
+    text-decoration: underline;
 }
+
 
 
 .job-details-container {
@@ -72,7 +74,7 @@ input[type="text"],
 input[type="email"],
 textarea,
 select {
-    width: 100%;
+    width: 90%;
     font-size: 16px;
     padding: 10px;
     border: 1px solid #ccc;
@@ -113,6 +115,17 @@ input#address {
     transition: background-color 0.2s ease-in-out;
 }
 
+#subcontractor-payment {
+    width: 100%;
+    font-size: 18px;       /* Larger font size for readability */
+    padding: 14px 16px;    /* Increased padding for a better touch target */
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    -webkit-appearance: none; /* Remove default iOS styling */
+    appearance: none;
+}
+
 input#address:hover {
     background-color: #e9ecef;
 }
@@ -128,19 +141,41 @@ select {
     cursor: pointer;
 }
 
+#subcontractor-dropdown {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px;
+    margin-bottom: 15px; /* Adds spacing below the dropdown */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    box-sizing: border-box;
+    appearance: none; /* Removes default OS styling */
+    cursor: pointer;
+}
+
+
 /* ============================= */
 /* Checkboxes */
 /* ============================= */
 input[type="checkbox"] {
     margin-right: 10px;
-    transform: scale(1.2);
+    -webkit-transform: scale(1.5); /* Older iOS Safari */
+    transform: scale(1.5);
+    width: 24px;  /* Ensures a larger clickable area */
+    height: 24px;
 }
 
 /* Align checkbox labels */
 .form-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 20px; /* Space between elements inside the form-group */
+    margin-bottom: 15px; /* Adds vertical spacing between form groups */
+}
+
+.form-group select {
+    width: fit-content !important;
 }
 
 /* ============================= */
@@ -202,8 +237,67 @@ button:hover {
         padding: 15px;
     }
 
-    button {
+    label {
+        font-size: 14px;
+        margin-bottom: 5px; /* Adds space below labels */
+        display: block;
+    }
+
+    input[type="checkbox"] {
+        -webkit-transform: scale(1.7);
+        transform: scale(1.7);
+        margin-right: 12px;
+    }
+
+    input, 
+    select, 
+    textarea {
+        width: 100%;
         font-size: 16px;
-        padding: 10px;
+        padding: 12px; /* Larger padding for better touch interaction */
+        margin-bottom: 15px; /* Adds space between fields */
+        border-radius: 6px;
+        box-sizing: border-box;
+    }
+
+    #subcontractor-payment {
+        font-size: 18px;
+        padding: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* Adds spacing between form elements */
+        margin-bottom: 20px;
+    }
+
+    /* Special Styling for DOW and Materials Needed */
+    #dow-completed, #materials-needed {
+        min-height: 120px; /* More space for multi-line text */
+    }
+
+    /* Adjusts select dropdowns */
+    select {
+        height: 44px;
+    }
+
+    /* Improve checkbox alignment */
+    .form-group input[type="checkbox"] {
+        transform: scale(1.2); /* Slightly larger for easier tap */
+    }
+
+    .file-input-container label {
+        font-size: 18px;  /* Increase label size for easier reading */
+    }
+    
+    .file-input-container input[type="file"] {
+        font-size: 18px;  /* Larger font for tap feedback */
+        padding: 14px;    /* Extra padding for improved touch target */
+    }
+    
+    .file-preview img {
+        width: 80px;   /* Slightly smaller images for limited screen space */
+        height: 80px;
     }
 }
