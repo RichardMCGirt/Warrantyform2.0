@@ -71,47 +71,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     const airtableTableName = window.env.AIRTABLE_TABLE_NAME;
     console.log("🆔 Record ID from URL:", recordId);
 
-    const fieldReviewNotNeeded = document.getElementById("field-review-not-needed");
-    const fieldReviewNeeded = document.getElementById("field-review-needed");
+ 
     const messageContainer = document.getElementById("message-container"); // Create a container for the message
 
-     // Ensure only one checkbox can be checked at a time
-     fieldReviewNotNeeded.addEventListener("change", function() {
-        if (fieldReviewNotNeeded.checked) {
-            fieldReviewNeeded.disabled = true; // Disable the other checkbox
-            fieldReviewNeeded.checked = false; // Uncheck the other checkbox
+ 
 
-            appendMessage("Field Review Not Needed has been selected. Field Review Needed is now disabled.");
-        } else {
-            fieldReviewNeeded.disabled = false; // Enable the other checkbox when unchecked
-            clearMessage();
-        }
-    });
-
-    fieldReviewNeeded.addEventListener("change", function() {
-        if (fieldReviewNeeded.checked) {
-            fieldReviewNotNeeded.disabled = true; // Disable the other checkbox
-            fieldReviewNotNeeded.checked = false; // Uncheck the other checkbox
-
-            appendMessage("Field Review Needed has been selected. Field Review Not Needed is now disabled.");
-        } else {
-            fieldReviewNotNeeded.disabled = false; // Enable the other checkbox when unchecked
-            clearMessage();
-        }
-    });
-
-    // Function to append a message to the message container
-    function appendMessage(message) {
-        const messageElement = document.createElement("p");
-        messageElement.textContent = message;
-        messageElement.style.color = "red";  // Inline style for red color
-        messageContainer.appendChild(messageElement);
-    }
-
-    // Function to clear the message when checkboxes are unchecked
-    function clearMessage() {
-        messageContainer.innerHTML = ""; // Clears the message container
-    }
 
 
     if (!recordId) {
@@ -209,9 +173,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         return data;
     }
     
-    
-    
-
     async function updateAirtableRecord(tableName, recordId, fields) {
         const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${tableName}/${recordId}`;
     
@@ -305,9 +266,6 @@ function populatePrimaryFields(job) {
         console.log("✅ Status is NOT 'Scheduled- Awaiting Field' - Showing all fields.");
         showElement("job-completed");
         showElement("job-completed-label");
-    
-
-
 
         // ✅ Populate values if status is NOT "Scheduled- Awaiting Field"
         setInputValue("billable-status", job["Billable/ Non Billable"]);
@@ -383,6 +341,8 @@ async function loadJobDetails(recordId) {
 
             populatePrimaryFields(jobData.fields);
         }
+        checkFieldTechReviewedState();
+
     } catch (error) {
         console.error("❌ Error fetching job details:", error);
     }
@@ -537,6 +497,54 @@ function displayImages(files, containerId) {
             console.log(`📝 Field changed: ${element.id}, New Value:`, element.type === "checkbox" ? element.checked : element.value);
         }
     });
+
+    function checkFieldTechReviewedState() {
+        const fieldTechReviewed = document.getElementById("field-tech-reviewed");
+        const fieldReviewNotNeeded = document.getElementById("field-review-not-needed");
+        const fieldReviewNeeded = document.getElementById("field-review-needed");
+        const issuePicturesContainer = document.getElementById("issue-pictures");
+        const fieldStatus = document.getElementById("field-status");
+    
+        if (!fieldTechReviewed) {
+            console.warn("⚠️ Field Tech Reviewed checkbox not found.");
+            return;
+        }
+    
+        // ✅ Ensure at least one checkbox is checked
+        const isFieldReviewChecked = fieldReviewNotNeeded.checked || fieldReviewNeeded.checked;
+    
+        // ✅ Ensure at least one image is uploaded
+        const hasImages = issuePicturesContainer && issuePicturesContainer.children.length > 0;
+    
+        // ✅ Check if status is "Field Tech Review Needed"
+        const isFieldTechReviewNeeded = fieldStatus && fieldStatus.value.trim() === "Field Tech Review Needed";
+    
+        // ✅ Disable Field Tech Reviewed checkbox if any condition is not met
+        const shouldDisable = !isFieldReviewChecked || !hasImages || isFieldTechReviewNeeded;
+        fieldTechReviewed.disabled = shouldDisable;
+    
+        console.log(`🔄 Field Tech Reviewed Checkbox State: ${shouldDisable ? "DISABLED" : "ENABLED"}`);
+    }
+    
+    // ✅ Call function when DOM loads and values change
+    document.addEventListener("DOMContentLoaded", function () {
+        checkFieldTechReviewedState(); // Initial check when the page loads
+    
+        document.getElementById("field-review-not-needed").addEventListener("change", checkFieldTechReviewedState);
+        document.getElementById("field-review-needed").addEventListener("change", checkFieldTechReviewedState);
+    
+        document.getElementById("issue-pictures").addEventListener("DOMNodeInserted", checkFieldTechReviewedState);
+        document.getElementById("issue-pictures").addEventListener("DOMNodeRemoved", checkFieldTechReviewedState);
+    
+        const fieldStatus = document.getElementById("field-status");
+        if (fieldStatus) {
+            fieldStatus.addEventListener("change", checkFieldTechReviewedState);
+        }
+    });
+    
+    
+    
+    
     
     document.getElementById("save-job").addEventListener("click", async function () {
         console.log("🔄 Save button clicked. Collecting all field values...");
@@ -551,7 +559,7 @@ function displayImages(files, containerId) {
                 let value;
     
                 if (input.type === "checkbox") {
-                    value = input.checked;
+                    value = input.checked; // ✅ Store checkboxes as true/false
                 } else if (input.tagName === "SELECT") {
                     value = input.value.trim();
                     if (value === "" || value === "undefined") return;
@@ -585,11 +593,19 @@ function displayImages(files, containerId) {
             await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId, updatedFields);
             console.log("✅ Airtable record updated successfully.");
             alert("Job details saved successfully!");
+    
+            // 🔹 **Fetch updated data and refresh checkboxes**
+            setTimeout(async () => {
+                const updatedData = await fetchAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId);
+                console.log("📩 Reloading checkboxes with updated Airtable data:", updatedData);
+                populatePrimaryFields(updatedData.fields);  // Reload UI with updated values
+            }, 1000); // Short delay to ensure Airtable has updated
         } catch (error) {
             console.error("❌ Error updating Airtable:", error);
             alert("Error saving job details. Please try again.");
         }
     });
+    
 
     
     // 🔹 Fetch Dropbox Token from Airtable

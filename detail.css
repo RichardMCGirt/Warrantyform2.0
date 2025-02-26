@@ -201,11 +201,14 @@ input[type="file"] {
 }
 
 .file-preview img {
-    max-width: 100px;
-    max-height: 100px;
-    border-radius: 5px;
-    object-fit: cover;
+    min-height: 200px; /* Minimum height for images */
+    max-width: 100%; /* Ensures it doesn't overflow */
+    object-fit: cover; /* Ensures the image fills the space while maintaining aspect ratio */
+    border-radius: 5px; /* Optional: Rounds corners */
+    display: block;
+    margin: 10px auto; /* Centers the images */
 }
+
 
 /* ============================= */
 /* Buttons */
