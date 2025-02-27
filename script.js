@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     const billableOptions = ['Billable', 'Non Billable'];
     const reasonOptions = ['Another Trade Damaged Work', 'Homeowner Damage', 'Weather'];
     const homeownerbuilderOptions =['Homeowner','Builder', 'Subcontractor ']
-    console.log("🌍 Current URL:", window.location.href);
 
     let dropboxAccessToken;
     let dropboxAppKey;
@@ -23,14 +22,12 @@ Promise.all([
     fetchDropboxCredentials(),
     checkDropboxTokenValidity()
 ]).then(() => {
-    console.log("All fetch operations completed.");
 }).catch(error => {
     console.error("An error occurred during one of the fetch operations:", error);
 });
 
        // Function to check if Dropbox token is still valid
 async function checkDropboxTokenValidity() {      
-    console.log("🔍 Checking Dropbox token validity...");
 
     if (!dropboxAccessToken) {
         return;
@@ -203,7 +200,6 @@ document.querySelectorAll('input, select, td[contenteditable="true"]').forEach(e
             if (!dropboxAccessToken || !dropboxAppKey || !dropboxAppSecret || !dropboxRefreshToken) {
                 console.error('One or more Dropbox credentials are missing after fetching.');
             } else {
-                console.log("Dropbox credentials loaded successfully.");
             }
         } catch (error) {
             console.error('Error occurred during fetchDropboxCredentials:', error);
@@ -799,7 +795,6 @@ document.body.appendChild(fileInput);
     let subOptions = []; // Declare subOptions globally
 
     async function fetchAllData() {
-        console.log("⏳ Fetching all data from Airtable...");
         mainContent.style.display = 'none';
         secondaryContent.style.display = 'none';
     
@@ -832,7 +827,6 @@ document.body.appendChild(fileInput);
                 offset = data.offset;
             } while (offset);
     
-            console.log(`✅ Total records fetched: ${allRecords.length}`);
     
             // Fetch and map field manager names
             const fieldManagerMap = await fetchFieldManagerNames();
@@ -901,7 +895,6 @@ document.body.appendChild(fileInput);
 
     async function fetchDataFromAirtable(retries = 3) {
         const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}`;
-        console.log(`📡 Fetching data from Airtable: ${url}`);
     
         try {
             const response = await fetch(url, {
@@ -911,7 +904,6 @@ document.body.appendChild(fileInput);
                 },
             });
     
-            console.log("📡 Airtable Response Status:", response.status);
     
             if (!response.ok) {
                 console.error(`❌ Error fetching Airtable data: ${response.status} ${response.statusText}`);
@@ -926,7 +918,6 @@ document.body.appendChild(fileInput);
             }
     
             const data = await response.json();
-            console.log("✅ Data successfully fetched:", data);
     
             // Ensure 'records' is always an array
             return Array.isArray(data.records) ? data : { records: [] };
@@ -947,10 +938,8 @@ document.body.appendChild(fileInput);
 
     async function populateFilterOptions() {
         try {
-            console.log("🔄 Fetching data for filter options...");
     
             const data = await fetchDataFromAirtable(); // Ensure this function returns data correctly
-            console.log("📥 Data received:", data);
     
             if (!data || !Array.isArray(data.records)) {
                 console.error("❌ Error: Expected 'data.records' to be an array but got:", data);
@@ -960,7 +949,6 @@ document.body.appendChild(fileInput);
             // Extract unique filter options
             const uniqueValues = [...new Set(data.records.map(record => record.fields['Field Tech']))];
     
-            console.log("📌 Unique Filter Options:", uniqueValues);
     
             const filterContainer = document.getElementById("filter-branch");
             if (!filterContainer) {
@@ -989,7 +977,6 @@ document.body.appendChild(fileInput);
                 filterContainer.appendChild(document.createElement("br"));
             });
     
-            console.log("✅ Filter options populated successfully.");
         } catch (error) {
             console.error("🚨 Error in populateFilterOptions:", error);
         }
@@ -1352,7 +1339,6 @@ document.querySelectorAll("tbody tr").forEach((row, index) => {
     
     // ✅ Ensure data is fully loaded before running merge
     async function waitForTableData(tableSelector, columnIndex) {
-        console.log(`⏳ Waiting for table data to load: ${tableSelector}`);
         
         let retries = 10; // Adjust based on load time
         let tableReady = false;
@@ -1366,7 +1352,6 @@ document.querySelectorAll("tbody tr").forEach((row, index) => {
                 break;
             }
     
-            console.log(`⏳ Waiting for ${tableSelector}... (${retries} retries left)`);
             await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
             retries--;
         }

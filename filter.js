@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("🚀 Page Loaded: DOMContentLoaded event fired");
 
     await fetchFieldTechs(); // ✅ Ensure this completes before proceeding
 
@@ -27,39 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ✅ Ensure filtering only happens after everything is ready
-    waitForElements(loadFiltersFromLocalStorage);
 });
-
-
-
-
-function waitForElements(callback) {
-    let retries = 20; // Max retries
-    const checkInterval = setInterval(() => {
-        const menuToggle = document.getElementById('menu-toggle');
-        const checkboxes = document.querySelectorAll('#filter-branch input[name="branch"]');
-        const tableRows = document.querySelectorAll('#airtable-data tbody tr, #feild-data tbody tr');
-
-        console.log(`🔍 menuToggle: ${menuToggle ? '✅ Found' : '❌ Missing'}`);
-        console.log(`🔍 Checkboxes Count: ${checkboxes.length}`);
-        console.log(`🔍 Table Rows Count: ${tableRows.length}`);
-
-        if (menuToggle && checkboxes.length > 0 && tableRows.length > 0) {
-            clearInterval(checkInterval);
-            console.log("✅ Menu, checkboxes, and table data detected! Applying filter...");
-            callback(); // Proceed with filtering
-        } else {
-            retries--;
-            console.log(`⏳ Waiting for elements... Retries left: ${retries}`);
-
-            if (retries <= 0) {
-                clearInterval(checkInterval);
-                console.warn("❌ Gave up waiting for elements to appear.");
-            }
-        }
-    }, 500); // Check every 500ms
-}
-
 
 
 // ✅ Function to observe when table rows are added
@@ -72,13 +39,11 @@ function observeTableData(selector) {
         return;
     }
 
-    console.log(`👀 Observing ${selector} for changes...`);
 
     const observer = new MutationObserver((mutationsList, observer) => {
         let rowsAdded = false;
         for (const mutation of mutationsList) {
             if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-                console.log(`✅ New rows detected in ${selector}. Applying filter...`);
                 filterRows();
                 rowsAdded = true;
                 observer.disconnect(); // Stop observing once data is loaded
@@ -86,7 +51,6 @@ function observeTableData(selector) {
         }
 
         if (!rowsAdded) {
-            console.log(`⏳ No rows detected in ${selector} yet. Continuing to observe...`);
         }
     });
 
@@ -128,16 +92,13 @@ async function generateCheckboxes(fieldTechs) {
     });
 
     filterBranchDiv.appendChild(checkboxContainer);
-    console.log("✅ Checkboxes Added to DOM.");
     
     attachCheckboxListeners();
-    waitForElements(filterRows); // ✅ Start filtering AFTER checkboxes are loaded
 }
 
 
 // ✅ Ensure fetchFieldTechs is defined
 async function fetchFieldTechs() {
-    console.log("🔄 Fetching Field Techs...");
     const AIRTABLE_API_KEY = window.env.AIRTABLE_API_KEY;
     const AIRTABLE_BASE_ID = window.env.AIRTABLE_BASE_ID;
     const AIRTABLE_TABLE_NAME = window.env.AIRTABLE_TABLE_NAME;
@@ -151,7 +112,6 @@ async function fetchFieldTechs() {
         if (!response.ok) throw new Error(`❌ Error fetching data: ${response.statusText}`);
 
         const data = await response.json();
-        console.log("✅ Data Received from Airtable:", data);
 
         const fieldTechsFromAirtable = new Set();
 
@@ -178,7 +138,6 @@ function filterRows() {
         .map(checkbox => checkbox.value.toLowerCase().trim());
 
     if (selectedBranches.length === 0 || selectedBranches.includes("all")) {
-        console.log("🌍 'All' selected, displaying all rows.");
         document.querySelectorAll('#airtable-data tbody tr, #feild-data tbody tr').forEach(row => {
             row.style.display = ""; // Show all rows
         });
@@ -226,7 +185,6 @@ function filterRows() {
 
 // ✅ Function to extract Field Techs from the table dynamically
 function getFieldTechsFromTable() {
-    console.log("🔍 Extracting Field Techs from Table...");
     
     const tableRows1 = document.querySelectorAll('#airtable-data tbody tr');
     const tableRows2 = document.querySelectorAll('#feild-data tbody tr');
@@ -249,7 +207,6 @@ function getFieldTechsFromTable() {
     extractFieldTechs(tableRows2);
 
     const uniqueFieldTechs = Array.from(fieldTechsInTable).sort();
-    console.log("✅ Unique Extracted Field Techs from Table:", uniqueFieldTechs);
     return uniqueFieldTechs;
 }
 
@@ -259,7 +216,6 @@ function saveFiltersToLocalStorage() {
         .map(checkbox => checkbox.value);
 
     localStorage.setItem('selectedFilters', JSON.stringify(selectedFilters));
-    console.log("💾 Filters saved:", selectedFilters);
 }
 
 // ✅ Load selected checkboxes from `localStorage`
@@ -268,7 +224,6 @@ function loadFiltersFromLocalStorage() {
 
     if (storedFilters) {
         const selectedFilters = JSON.parse(storedFilters);
-        console.log("🔄 Restoring Filters:", selectedFilters);
 
         waitForElements(() => {
             console.log("🔄 Applying filters...");
@@ -281,7 +236,6 @@ function loadFiltersFromLocalStorage() {
             
         });
     } else {
-        console.log("🆕 No stored filters. Defaulting to 'All' checked.");
         document.querySelector('#filter-branch input[value="All"]').checked = true;
     }
 }
@@ -291,7 +245,6 @@ function waitForTableData(callback) {
         const tableRows = document.querySelectorAll('#airtable-data tbody tr, #feild-data tbody tr');
         if (tableRows.length > 0) {
             clearInterval(tableCheckInterval);
-            console.log("✅ Table data detected, proceeding with filtering...");
             callback(); // ✅ Apply filtering once data is available
         }
     }, 300); // Check every 300ms until table has rows
@@ -352,5 +305,4 @@ function attachCheckboxListeners() {
         });
     });
 
-    console.log("✅ Checkbox Event Listeners Attached.");
 }

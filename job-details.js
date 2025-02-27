@@ -245,22 +245,15 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     
     
-    let isUpdating = false; // 🔹 Prevents infinite loop
 
 async function updateAirtableRecord(tableName, address, fields) {
-    if (isUpdating) {
-        console.warn("⚠️ Update already in progress. Skipping duplicate request.");
-        return;
-    }
-    
-    isUpdating = true; // ✅ Lock function to prevent looping
+   
     
     try {
         const recordId = await getRecordIdByAddress(address);
         if (!recordId) {
             console.error("❌ No record ID found for this address. Cannot update Airtable.");
             showToast("❌ Error: No record found for this address.", "error");
-            isUpdating = false; // 🔹 Reset lock
             return;
         }
 
@@ -291,11 +284,9 @@ async function updateAirtableRecord(tableName, address, fields) {
         console.log("✅ Airtable record updated successfully:", fields);
         showToast("✅ Changes saved successfully!", "success");
 
-        // ✅ Refresh page **only if** the record was updated successfully
-        setTimeout(() => {
-            isUpdating = false; // 🔹 Unlock before refresh
-            location.reload();
-        }, 2000); 
+      
+        
+        
 
     } catch (error) {
         console.error("❌ Error updating Airtable:", error);
@@ -749,23 +740,18 @@ function getSavedRecordId() {
 
 // ✅ Set the record ID on page load
 document.addEventListener("DOMContentLoaded", () => {
-    let recordId = getSavedRecordId(); // Retrieve saved ID
+    let recordId = getSavedRecordId() || new URLSearchParams(window.location.search).get("id");
 
     if (!recordId) {
-        // If no ID is found, check URL parameters
-        const params = new URLSearchParams(window.location.search);
-        recordId = params.get("id");
+        console.error("❌ No record ID found! Preventing redirect loop.");
+        alert("No job selected.");
+        return; // ✅ Prevents infinite redirects
     }
 
-    if (recordId) {
-        console.log("🆔 Using saved Record ID:", recordId);
-        saveRecordIdToLocal(recordId); // Ensure it's stored for future use
-    } else {
-        console.error("❌ No record ID found!");
-        alert("No job selected. Redirecting to job list.");
-        window.location.href = "index.html"; // Redirect if no ID is found
-    }
+    console.log("🆔 Using saved Record ID:", recordId);
+    saveRecordIdToLocal(recordId); 
 });
+
 
     document.addEventListener("DOMContentLoaded", function () {
         console.log("✅ Job Details Page Loaded.");
@@ -775,8 +761,8 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     
         formElements.forEach(element => {
-            element.addEventListener("input", () => handleInputChange(element));
-            element.addEventListener("change", () => handleInputChange(element));
+            element.addEventListener("input", () => handleInputChange(element), { once: true });
+            element.addEventListener("change", () => handleInputChange(element), { once: true });
         });
     
         function handleInputChange(element) {
