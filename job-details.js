@@ -498,11 +498,9 @@ async function deleteImageFromAirtable(recordId, imageId, imageField) {
         return;
     }
 
-    console.log(`🗑 Deleting image ${imageId} from record ${recordId}, field: ${imageField}`);
-
     const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}/${recordId}`;
     const currentImages = await fetchCurrentImagesFromAirtable(recordId, imageField);
-    
+
     if (!currentImages || currentImages.length === 0) {
         console.warn("⚠️ No images found in Airtable.");
         return;
@@ -511,51 +509,30 @@ async function deleteImageFromAirtable(recordId, imageId, imageField) {
     // Remove the selected image
     const updatedImages = currentImages.filter(image => image.id !== imageId);
 
-    // Get the image element
-    const imageElement = document.querySelector(`img[data-image-id="${imageId}"]`);
-    if (!imageElement) {
-        console.warn(`⚠️ Image element not found for ID: ${imageId}`);
-        return;
+    try {
+        const response = await fetch(url, {
+            method: "PATCH",
+            headers: {
+                Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ fields: { [imageField]: updatedImages.length > 0 ? updatedImages : [] } })
+        });
+
+        if (!response.ok) {
+            console.error("❌ Error updating Airtable:", response.status, response.statusText);
+            return;
+        }
+
+        console.log("✅ Image successfully deleted from Airtable:", await response.json());
+
+        // ✅ Remove the image from the UI without reloading
+        document.querySelector(`img[data-image-id="${imageId}"]`).remove();
+    } catch (error) {
+        console.error("❌ Error updating record in Airtable:", error);
     }
-
-    // Define white smoke animation
-    const style = document.createElement("style");
-    style.innerHTML = `
-        @keyframes poofToWhiteSmoke {
-            0% { opacity: 1; transform: scale(1); filter: blur(0); }
-            50% { opacity: 0.5; transform: scale(1.5); filter: blur(5px); background-color: rgba(255, 255, 255, 0.6); }
-            100% { opacity: 0; transform: scale(2); filter: blur(10px); background-color: rgba(255, 255, 255, 1); }
-        }
-    `;
-    document.head.appendChild(style);
-
-    // Apply animation before removing the image
-    imageElement.style.animation = "poofToWhiteSmoke 2s ease forwards";
-
-    setTimeout(async () => {
-        try {
-            const response = await fetch(url, {
-                method: "PATCH",
-                headers: {
-                    Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ fields: { [imageField]: updatedImages.length > 0 ? updatedImages : [] } })
-            });
-
-            if (!response.ok) {
-                const errorDetails = await response.json();
-                console.error("❌ Error updating Airtable:", response.status, response.statusText, errorDetails);
-                return;
-            }
-
-            console.log("✅ Image successfully deleted from Airtable:", await response.json());
-            imageElement.remove();
-        } catch (error) {
-            console.error("❌ Error updating record in Airtable:", error);
-        }
-    }, 2000); // Matches the animation duration
 }
+
 
 
 
