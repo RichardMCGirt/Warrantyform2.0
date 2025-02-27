@@ -1831,7 +1831,6 @@ select.addEventListener('change', () => {
         
                 // Store Job ID in localStorage
                 localStorage.setItem("selectedJobId", jobId);
-                console.log(`💾 Job ID stored: ${jobId}`);
         
                 // Apply styles to indicate clickable element
                 jobCell.style.cursor = 'pointer';
@@ -1850,16 +1849,7 @@ select.addEventListener('change', () => {
         });
         
     });
-    
-    
-    
-    
-    
-    
-    
-    
-
-    
+        
 }
                 else if (link) {
                     const matchingCalendar = calendarLinks.find(calendar => calendar.name === value);

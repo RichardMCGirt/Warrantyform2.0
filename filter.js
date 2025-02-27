@@ -1,42 +1,66 @@
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("🚀 Page Loaded: DOMContentLoaded event fired");
 
-    const menuToggle = document.getElementById('menu-toggle');
-    const checkboxContainer = document.getElementById('checkbox-container');
-    const filterBranchDiv = document.getElementById('filter-branch');
+    await fetchFieldTechs(); // ✅ Ensure this completes before proceeding
 
-    console.log("🔎 Fetching Field Technicians from Airtable...");
-    await fetchFieldTechs(); // Fetch technicians from Airtable
-    console.log("✅ Field Technicians Loaded.");
-
-    attachCheckboxListeners(); // Attach event listeners to checkboxes
-    loadFiltersFromLocalStorage(); // Load saved filters, default to 'All'
-
+    attachCheckboxListeners();
     observeTableData('#airtable-data tbody');
     observeTableData('#feild-data tbody');
+
+    const menuToggle = document.getElementById('menu-toggle');
+    const checkboxContainer = document.getElementById('checkbox-container');
 
     let checkboxesAppended = false;
 
     menuToggle.addEventListener('click', () => {
-        console.log("📂 Menu Toggle Clicked");
-
         if (!checkboxesAppended) {
-            console.log("🆕 Appending checkboxes...");
             generateCheckboxes(getFieldTechsFromTable());
             checkboxesAppended = true;
         }
-
         checkboxContainer.classList.toggle('show');
-        console.log(`📂 Menu Status: ${checkboxContainer.classList.contains('show') ? "Opened" : "Closed"}`);
     });
 
     document.addEventListener('click', (event) => {
         if (!checkboxContainer.contains(event.target) && !menuToggle.contains(event.target)) {
             checkboxContainer.classList.remove('show');
-            console.log("❌ Menu Closed due to outside click");
         }
     });
+
+    // ✅ Ensure filtering only happens after everything is ready
+    waitForElements(loadFiltersFromLocalStorage);
 });
+
+
+
+
+function waitForElements(callback) {
+    let retries = 20; // Max retries
+    const checkInterval = setInterval(() => {
+        const menuToggle = document.getElementById('menu-toggle');
+        const checkboxes = document.querySelectorAll('#filter-branch input[name="branch"]');
+        const tableRows = document.querySelectorAll('#airtable-data tbody tr, #feild-data tbody tr');
+
+        console.log(`🔍 menuToggle: ${menuToggle ? '✅ Found' : '❌ Missing'}`);
+        console.log(`🔍 Checkboxes Count: ${checkboxes.length}`);
+        console.log(`🔍 Table Rows Count: ${tableRows.length}`);
+
+        if (menuToggle && checkboxes.length > 0 && tableRows.length > 0) {
+            clearInterval(checkInterval);
+            console.log("✅ Menu, checkboxes, and table data detected! Applying filter...");
+            callback(); // Proceed with filtering
+        } else {
+            retries--;
+            console.log(`⏳ Waiting for elements... Retries left: ${retries}`);
+
+            if (retries <= 0) {
+                clearInterval(checkInterval);
+                console.warn("❌ Gave up waiting for elements to appear.");
+            }
+        }
+    }, 500); // Check every 500ms
+}
+
+
 
 // ✅ Function to observe when table rows are added
 function observeTableData(selector) {
@@ -51,11 +75,18 @@ function observeTableData(selector) {
     console.log(`👀 Observing ${selector} for changes...`);
 
     const observer = new MutationObserver((mutationsList, observer) => {
+        let rowsAdded = false;
         for (const mutation of mutationsList) {
             if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+                console.log(`✅ New rows detected in ${selector}. Applying filter...`);
                 filterRows();
+                rowsAdded = true;
                 observer.disconnect(); // Stop observing once data is loaded
             }
+        }
+
+        if (!rowsAdded) {
+            console.log(`⏳ No rows detected in ${selector} yet. Continuing to observe...`);
         }
     });
 
@@ -63,9 +94,17 @@ function observeTableData(selector) {
 }
 
 
+
 // ✅ Generate Checkboxes only when menu is clicked
 async function generateCheckboxes(fieldTechs) {
     const filterBranchDiv = document.getElementById('filter-branch');
+
+    // ✅ Prevent duplicate checkbox generation
+    if (filterBranchDiv.children.length > 0) {
+        console.warn("⚠️ Checkboxes already exist. Skipping generation.");
+        return;
+    }
+
     filterBranchDiv.innerHTML = ''; // Clear existing checkboxes
 
     const checkboxContainer = document.createElement('div');
@@ -90,8 +129,11 @@ async function generateCheckboxes(fieldTechs) {
 
     filterBranchDiv.appendChild(checkboxContainer);
     console.log("✅ Checkboxes Added to DOM.");
-    attachCheckboxListeners(); // Attach event listeners
+    
+    attachCheckboxListeners();
+    waitForElements(filterRows); // ✅ Start filtering AFTER checkboxes are loaded
 }
+
 
 // ✅ Ensure fetchFieldTechs is defined
 async function fetchFieldTechs() {
@@ -211,6 +253,7 @@ function getFieldTechsFromTable() {
     return uniqueFieldTechs;
 }
 
+// ✅ Save selected checkboxes to `localStorage`
 function saveFiltersToLocalStorage() {
     const selectedFilters = Array.from(document.querySelectorAll('#filter-branch input[name="branch"]:checked'))
         .map(checkbox => checkbox.value);
@@ -219,6 +262,7 @@ function saveFiltersToLocalStorage() {
     console.log("💾 Filters saved:", selectedFilters);
 }
 
+// ✅ Load selected checkboxes from `localStorage`
 function loadFiltersFromLocalStorage() {
     const storedFilters = localStorage.getItem('selectedFilters');
 
@@ -226,19 +270,64 @@ function loadFiltersFromLocalStorage() {
         const selectedFilters = JSON.parse(storedFilters);
         console.log("🔄 Restoring Filters:", selectedFilters);
 
-        // Check the corresponding checkboxes
-        document.querySelectorAll('#filter-branch input[name="branch"]').forEach(checkbox => {
-            checkbox.checked = selectedFilters.includes(checkbox.value);
-        });
+        waitForElements(() => {
+            console.log("🔄 Applying filters...");
+            document.querySelectorAll('#filter-branch input[name="branch"]').forEach(checkbox => {
+                checkbox.checked = selectedFilters.includes(checkbox.value);
+            });
 
-        // Delay filter execution to ensure table data is loaded
-        setTimeout(() => filterRows(), 500);
+            filterRows(); // ✅ Apply filters
+
+            
+        });
     } else {
-        // If no filters are stored, keep "All" checked
-        document.querySelector('#filter-branch input[value="All"]').checked = true;
         console.log("🆕 No stored filters. Defaulting to 'All' checked.");
+        document.querySelector('#filter-branch input[value="All"]').checked = true;
     }
 }
+// ✅ Function to ensure table data is loaded before filtering
+function waitForTableData(callback) {
+    const tableCheckInterval = setInterval(() => {
+        const tableRows = document.querySelectorAll('#airtable-data tbody tr, #feild-data tbody tr');
+        if (tableRows.length > 0) {
+            clearInterval(tableCheckInterval);
+            console.log("✅ Table data detected, proceeding with filtering...");
+            callback(); // ✅ Apply filtering once data is available
+        }
+    }, 300); // Check every 300ms until table has rows
+}
+
+// ✅ Log manual clicks on the filter button
+document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.getElementById('menu-toggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            console.log(`📂 [USER CLICK] Filter menu ${menuToggle.classList.contains('show') ? "CLOSED" : "OPENED"}`);
+        });
+    }
+});
+
+
+function handleCheckboxChange(event) {
+    const checkbox = event.target;
+    console.log(`📌 Checkbox Changed: ${checkbox.value} - ${checkbox.checked ? "Checked" : "Unchecked"}`);
+
+    const checkboxes = document.querySelectorAll('#filter-branch input[name="branch"]');
+    const allCheckbox = document.querySelector('#filter-branch input[value="All"]');
+
+    if (checkbox.value === "All" && checkbox.checked) {
+        checkboxes.forEach(cb => {
+            if (cb !== allCheckbox) cb.checked = false;
+        });
+    } else if (checkbox !== allCheckbox) {
+        allCheckbox.checked = false;
+    }
+
+    saveFiltersToLocalStorage();
+    filterRows();
+}
+
+
 
 function attachCheckboxListeners() {
     const checkboxes = document.querySelectorAll('#filter-branch input[name="branch"]');
@@ -251,17 +340,15 @@ function attachCheckboxListeners() {
             if (checkbox.value === "All" && checkbox.checked) {
                 // ✅ If "All" is checked, uncheck all other checkboxes
                 checkboxes.forEach(cb => {
-                    if (cb !== allCheckbox) {
-                        cb.checked = false;
-                    }
+                    if (cb !== allCheckbox) cb.checked = false;
                 });
             } else if (checkbox !== allCheckbox) {
-                // ✅ If any individual checkbox is checked, uncheck "All"
+                // ✅ If any other checkbox is checked, uncheck "All"
                 allCheckbox.checked = false;
             }
 
             saveFiltersToLocalStorage();
-            filterRows(); // Apply the filter immediately
+            filterRows();
         });
     });
 
