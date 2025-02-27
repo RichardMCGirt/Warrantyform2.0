@@ -899,7 +899,7 @@ document.body.appendChild(fileInput);
     }
     
 
-    async function fetchDataFromAirtable() {
+    async function fetchDataFromAirtable(retries = 3) {
         const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}`;
         console.log(`📡 Fetching data from Airtable: ${url}`);
     
@@ -907,21 +907,40 @@ document.body.appendChild(fileInput);
             const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
+                    "Content-Type": "application/json",
                 },
             });
     
+            console.log("📡 Airtable Response Status:", response.status);
+    
             if (!response.ok) {
                 console.error(`❌ Error fetching Airtable data: ${response.status} ${response.statusText}`);
-                return { records: [] }; // Return empty array to prevent undefined errors
+                
+                // Retry on 5xx server errors
+                if (response.status >= 500 && retries > 0) {
+                    console.warn(`⚠️ Retrying... Attempts left: ${retries - 1}`);
+                    return await fetchDataFromAirtable(retries - 1);
+                }
+    
+                return { records: [] }; // Return empty array on failure
             }
     
             const data = await response.json();
             console.log("✅ Data successfully fetched:", data);
     
-            return data;
+            // Ensure 'records' is always an array
+            return Array.isArray(data.records) ? data : { records: [] };
+    
         } catch (error) {
             console.error("🚨 Error fetching data from Airtable:", error);
-            return { records: [] }; // Return empty array on error
+    
+            // Retry on network errors
+            if (retries > 0) {
+                console.warn(`⚠️ Retrying... Attempts left: ${retries - 1}`);
+                return await fetchDataFromAirtable(retries - 1);
+            }
+    
+            return { records: [] }; // Return empty array on failure
         }
     }
     
@@ -1793,35 +1812,43 @@ select.addEventListener('change', () => {
        
     
         fieldConfigs.forEach(config => {
-    
-       // 🔥 Instead of checking jobDetailsLink, always log and apply the redirect
-if (config.field.includes("Lot Number")) {
-    // Fetch the unique record ID from the cell's `data-id` attribute
-    const jobId = row.querySelector('td[data-field="b"]').getAttribute("data-id");
-
-    // Ensure cell is mutable and uniquely identifiable
-    let cell = row.querySelector(`td[data-field="${config.field}"]`);
-
-    // Add styles to indicate it is clickable
-    cell.style.cursor = 'pointer';
-    cell.style.color = 'blue';
-    cell.style.textDecoration = 'underline';
-
-    // 🔥 Remove any existing event listeners (prevents duplicates)
-    cell.replaceWith(cell.cloneNode(true));  // Re-create the cell to reset event listeners
-    cell = row.querySelector(`td[data-field="${config.field}"]`);
-
-    // 🔴 Force Redirect with `location.href`
-    cell.addEventListener('click', () => {
-        console.log(`🔀 Redirecting NOW to job-details.html?id=${jobId}`);
-        window.location.href = `job-details.html?id=${jobId}`;
-    });
-}
-
-
-            
-            
+            if (config.field.includes("Lot Number")) {
+                // Ensure row and cell exist before proceeding
+                const jobCell = row.querySelector(`td[data-field="${config.field}"]`);
+                const jobIdCell = row.querySelector('td[data-field="b"]');
+        
+                if (!jobCell || !jobIdCell) {
+                    console.warn("⚠️ Job cell or ID cell missing. Skipping...");
+                    return;
+                }
+        
+                const jobId = jobIdCell.getAttribute("data-id");
+        
+                if (!jobId) {
+                    console.error("❌ No Job ID found in the 'b' field.");
+                    return;
+                }
+        
+                // Store Job ID in localStorage
+                localStorage.setItem("selectedJobId", jobId);
+                console.log(`💾 Job ID stored: ${jobId}`);
+        
+                // Apply styles to indicate clickable element
+                jobCell.style.cursor = 'pointer';
+                jobCell.style.color = 'blue';
+                jobCell.style.textDecoration = 'underline';
+        
+                // Ensure old event listeners are removed before adding new ones
+                jobCell.replaceWith(jobCell.cloneNode(true));  
+                const newCell = row.querySelector(`td[data-field="${config.field}"]`);
+        
+                newCell.addEventListener('click', () => {
+                    console.log(`🔀 Redirecting NOW to job-details.html?id=${jobId}`);
+                    window.location.href = `job-details.html?id=${jobId}`;
+                });
+            }
         });
+        
     });
     
     
