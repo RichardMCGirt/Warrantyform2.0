@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         await fetchAndPopulateSubcontractors(recordId);
 
         // ✅ Load images using Lot Name
-        await loadImagesForLot(lotName);
+        await loadImagesForLot(lotName, primaryData.fields["Status"]);
 
         /** ✅ Add Event Listener for Deleting Images **/
         const deleteBtn = document.getElementById("delete-images-btn");
@@ -152,8 +152,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                 console.log("📌 Selected Images for Deletion:", checkboxes.length);
 
-                const imageIndexes = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
-
+                const imageIndexes = Array.from(checkboxes).map(cb => {
+                    const index = parseInt(cb.dataset.index);
+                    return isNaN(index) ? null : index;
+                }).filter(index => index !== null);
+                
                 console.log("📌 Image Indexes to Delete:", imageIndexes);
 
                 // Delete images by Lot Name
@@ -210,7 +213,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log("📌 Airtable Response Data:", data);
     
         if (data.fields && data.fields["Completed  Pictures"]) {
-            console.log("✅ Completed Pictures:", data.fields["Completed  Pictures"]);
+            console.log("✅ Completed  Pictures:", data.fields["Completed  Pictures"]);
         } else {
             console.warn("⚠️ 'Completed  Pictures' field is missing or empty.");
         }
@@ -219,7 +222,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     
     async function getRecordIdByAddress(address) {
-        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}?filterByFormula=${encodeURIComponent(`{Address} = "${address}"`)}`;
+        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}?filterByFormula=${encodeURIComponent(`{Lot Number and Community/Neighborhood} = "${address}"`)}`;
     
         try {
             console.log("🔍 Searching for Record ID using Address:", address);
@@ -314,7 +317,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     
 // 🔹 Populate Primary Fields
-function populatePrimaryFields(job) {
+// 🔹 Populate Primary Fields
+async function populatePrimaryFields(job) { // ✅ Make function async
     console.log("🛠 Populating UI with Record ID:", job["id"]);
 
     setInputValue("job-name", job["Lot Number and Community/Neighborhood"]);
@@ -326,15 +330,15 @@ function populatePrimaryFields(job) {
     setInputValue("dow-completed", job["DOW to be Completed"]); 
     setInputValue("field-status", job["Status"]);
 
-    // ✅ Load images first
-    displayImages(job["Picture(s) of Issue"], "issue-pictures");
-    displayImages(job["Completed  Pictures"], "completed-pictures");
-
     console.log("✅ Images Loaded - Checking Status...");
 
-    // ✅ Now check job status after images have loaded
+    // ✅ If status is "Scheduled - Awaiting Field", delete images
     if (job["Status"] === "Scheduled- Awaiting Field") {
-        console.log("🚨 Job is 'Scheduled- Awaiting Field' - Hiding certain input fields.");
+        console.log("🚨 Job is 'Scheduled - Awaiting Field' - Deleting completed images...");
+        
+        // ✅ Ensure deletion completes before continuing
+        await deleteImagesByLotName(job["Lot Number and Community/Neighborhood"], [], "Completed  Pictures");
+
         hideElementById("billable-status");
         hideElementById("homeowner-builder");
         hideElementById("subcontractor");
@@ -366,7 +370,7 @@ function populatePrimaryFields(job) {
 
     setCheckboxValue("job-completed", job["Job Completed"]);
 
-    // ✅ Now hide elements if "Field Tech Review Needed"
+    // ✅ Hide elements if "Field Tech Review Needed"
     if (job["Status"] === "Field Tech Review Needed") {
         console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
         hideElementById("completed-pictures");
@@ -382,6 +386,7 @@ function populatePrimaryFields(job) {
 }
 
 
+
 // Function to hide an element safely
 function hideElementById(elementId) {
     const element = document.getElementById(elementId);
@@ -392,47 +397,18 @@ function hideElementById(elementId) {
     }
 }
 
-// Function to show an element safely
 function showElement(elementId) {
     const element = document.getElementById(elementId);
     if (element) {
-        element.style.display = "block"; // Ensures visibility
+        element.style.display = "block";
     } else {
         console.warn(`⚠️ Element not found: ${elementId}`);
     }
 }
+
  
-async function loadJobDetails(recordId) {
-    try {
-        console.log("📡 Fetching job details for:", recordId);
-        const jobData = await fetchAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId);
-
-        if (jobData && jobData.fields) {
-            console.log("✅ Job data fetched:", jobData.fields);
-
-            populatePrimaryFields(jobData.fields);
-
-            // Ensure images exist before displaying them
-            const completedPictures = jobData.fields["Completed  Pictures"] || [];
-            const issuePictures = jobData.fields["Picture(s) of Issue"] || [];
-
-            console.log("🖼️ Completed  Pictures Debug:", completedPictures);
-            console.log("🖼️ Issue Pictures Debug:", issuePictures);
-
-            // ✅ Call displayImages immediately
-            displayImages(completedPictures, "completed-pictures");
-            displayImages(issuePictures, "issue-pictures");
-        }
-    } catch (error) {
-        console.error("❌ Error fetching job details:", error);
-    }
-}
 
 
-
-
-
-    
 async function displayImages(files, containerId) {
     const container = document.getElementById(containerId);
     if (!container) {
@@ -593,29 +569,14 @@ document.getElementById("delete-images-btn").addEventListener("click", async fun
         return;
     }
 
-    // 🔹 Fetch existing images from Airtable ("Picture(s) of Issue")
-    let existingImages = await fetchImagesByLotName(lotName, "Picture(s) of Issue");
+    // 🔹 Delete from both "Picture(s) of Issue" and "Completed Pictures"
+    await deleteImagesByLotName(lotName, imageIdsToDelete, "Picture(s) of Issue");
+    await deleteImagesByLotName(lotName, imageIdsToDelete, "Completed  Pictures");
 
-    if (!existingImages || existingImages.length === 0) {
-        alert("⚠️ No existing images found in Airtable.");
-        console.warn("⚠️ No existing images found for deletion.");
-        return;
-    }
-
-    // 🔹 Remove selected images
-    const updatedImages = existingImages.filter(img => !imageIdsToDelete.includes(img.id));
-
-    console.log("✅ Updated images list after deletion:", updatedImages);
-
-    // 🔹 Update Airtable with the new images list
-    await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, {
-        "Picture(s) of Issue": updatedImages.length > 0 ? updatedImages : []
-    });
-
-    console.log("✅ Images deleted successfully!");
+    console.log("✅ Images deleted successfully from both fields!");
 
     // ✅ Refresh UI to reflect changes
-    displayImages(updatedImages, "issue-pictures");
+    await loadImagesForLot(lotName, document.getElementById("field-status")?.value);
 });
 
 
@@ -624,55 +585,46 @@ document.getElementById("delete-images-btn").addEventListener("click", async fun
 
 
 
+
 /** ✅ Function to remove images from Airtable */
-async function deleteImagesByLotName(lotName, imageIndexes, imageField) {
-    console.log("🗑️ Attempting to delete images for Lot Name:", lotName);
+async function deleteImagesByLotName(lotName, imageIdsToDelete, imageField) {
+    console.log(`🗑️ Attempting to delete images from '${imageField}' for Lot Name:`, lotName);
 
     if (!lotName) {
         console.error("❌ Lot Name is missing. Cannot delete images.");
         return;
     }
 
-    // Fetch the correct record ID using Lot Name
-    const records = await fetchImagesByLotName(lotName, imageField);
-
-    if (!records || records.length === 0) {
-        console.warn("⚠️ No images found in Airtable.");
+    // Fetch existing images
+    let existingImages = await fetchImagesByLotName(lotName, imageField);
+    if (!existingImages || existingImages.length === 0) {
+        console.warn(`⚠️ No images found in '${imageField}'. Skipping deletion.`);
         return;
     }
 
-    console.log("📸 Current Images Before Deletion:", records);
+    console.log(`📸 Current Images in '${imageField}' Before Deletion:`, existingImages);
 
-    // Sort indexes in descending order to prevent shifting issues when deleting
-    const sortedIndexes = imageIndexes.sort((a, b) => b - a);
+    // Remove selected images
+    const updatedImages = existingImages.filter(img => !imageIdsToDelete.includes(img.id));
 
-    // Remove images using index positions
-    sortedIndexes.forEach(index => {
-        if (index >= 0 && index < records.length) {
-            console.log(`🗑️ Removing image at index: ${index}`);
-            records.splice(index, 1);
-        } else {
-            console.warn(`⚠️ Invalid index: ${index} - Skipping deletion.`);
-        }
-    });
-
-    console.log("✅ Updated Images After Deletion:", records);
+    console.log(`✅ Updated Images After Deletion from '${imageField}':`, updatedImages);
 
     try {
         // Update Airtable with the new image list
         await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, {
-            [imageField]: records.length > 0 ? records : []
+            [imageField]: updatedImages.length > 0 ? updatedImages : []
         });
 
-        console.log("✅ Selected images deleted successfully!");
+        console.log(`✅ Selected images deleted successfully from '${imageField}'!`);
 
         // Refresh UI
-        displayImages(records, imageField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
+        displayImages(updatedImages, imageField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
     } catch (error) {
-        console.error("❌ Error deleting images from Airtable:", error);
+        console.error(`❌ Error deleting images from '${imageField}' in Airtable:`, error);
         alert("Error deleting images. Please try again.");
     }
 }
+
 
 async function fetchImagesByLotName(lotName, imageField) {
     console.log("📡 Fetching images for Lot Name:", lotName);
@@ -730,18 +682,17 @@ async function fetchImagesByLotName(lotName, imageField) {
 
 
 
-async function loadImagesForLot(lotName) {
-    console.log("📡 Loading images for lot:", lotName);
+async function loadImagesForLot(lotName, status) {
+    console.log("📡 Loading images for lot:", lotName, "| Status:", status);
 
-    const completedPictures = await fetchImagesByLotName(lotName, "Completed  Pictures");
-    const issuePictures = await fetchImagesByLotName(lotName, "Picture(s) of Issue");
+    const imageField = (status === "Field Tech Review Needed") ? "Picture(s) of Issue" : "Completed  Pictures";
 
-    console.log("🖼️ Completed Pictures Debug:", completedPictures);
-    console.log("🖼️ Issue Pictures Debug:", issuePictures);
+    const images = await fetchImagesByLotName(lotName, imageField);
+    console.log(`🖼️ Loaded Images from ${imageField}:`, images);
 
-    displayImages(completedPictures, "completed-pictures");
-    displayImages(issuePictures, "issue-pictures");
+    displayImages(images, imageField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
 }
+
 
     async function testFetchImages() {
         try {
@@ -1215,8 +1166,10 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log(`✅ Total Subcontractors Matching Branch '${branchB}':`, allSubcontractors.length);
     
             // 3️⃣ Populate the dropdown
-            populateSubcontractorDropdown(allSubcontractors);
-    
+            setTimeout(() => {
+                populateSubcontractorDropdown(allSubcontractors);
+            }, 500); // Waits 500ms to ensure records are fetched
+                
         } catch (error) {
             console.error("❌ Error:", error);
         }
