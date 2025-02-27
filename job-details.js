@@ -245,55 +245,79 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     
     
-    async function updateAirtableRecord(tableName, address, fields) {
-        try {
-            const recordId = await getRecordIdByAddress(address);
-            if (!recordId) {
-                console.error("❌ No record ID found for this address. Cannot update Airtable.");
-                showToast("❌ Error: No record found for this address.", "error"); // ❌ Show error toast
-                return;
-            }
-    
-            const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${tableName}/${recordId}`;
-            
-            console.log("📡 Sending API Request to Airtable:");
-            console.log("🔗 URL:", url);
-            console.log("📋 Fields Being Sent:", JSON.stringify(fields, null, 2));
-    
-            const response = await fetch(url, {
-                method: "PATCH",
-                headers: {
-                    Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ fields })
-            });
-    
-            const result = await response.json();
-            console.log("📩 Airtable Response:", JSON.stringify(result, null, 2));
-    
-            if (!response.ok) {
-                console.error(`❌ Airtable Error: ${response.status} ${response.statusText}`);
-                console.error("📜 Full Error Message from Airtable:", result);
-                showToast(`❌ Error ${response.status}: ${response.statusText}`, "error"); // ❌ Show error toast
-                throw new Error(`Error ${response.status}: ${JSON.stringify(result, null, 2)}`);
-            }
-    
-            console.log("✅ Airtable record updated successfully:", fields);
-            showToast("✅ Changes saved successfully!", "success"); // ✅ Show success toast
-    
-            // ✅ Refresh page after 2 seconds
-            setTimeout(() => {
-                location.reload();
-            }, 2000); 
-    
-        } catch (error) {
-            console.error("❌ Error updating Airtable:", error);
-            showToast(`❌ Error saving job details: ${error.message}`, "error"); // ❌ Show error toast
-        }
+    let isUpdating = false; // 🔹 Prevents infinite loop
+
+async function updateAirtableRecord(tableName, address, fields) {
+    if (isUpdating) {
+        console.warn("⚠️ Update already in progress. Skipping duplicate request.");
+        return;
     }
     
+    isUpdating = true; // ✅ Lock function to prevent looping
     
+    try {
+        const recordId = await getRecordIdByAddress(address);
+        if (!recordId) {
+            console.error("❌ No record ID found for this address. Cannot update Airtable.");
+            showToast("❌ Error: No record found for this address.", "error");
+            isUpdating = false; // 🔹 Reset lock
+            return;
+        }
+
+        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${tableName}/${recordId}`;
+
+        console.log("📡 Sending API Request to Airtable:", url);
+        console.log("📋 Fields Being Sent:", JSON.stringify(fields, null, 2));
+
+        const response = await fetch(url, {
+            method: "PATCH",
+            headers: {
+                Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ fields })
+        });
+
+        const result = await response.json();
+        console.log("📩 Airtable Response:", JSON.stringify(result, null, 2));
+
+        if (!response.ok) {
+            console.error(`❌ Airtable Error: ${response.status} ${response.statusText}`);
+            showToast(`❌ Error ${response.status}: ${response.statusText}`, "error");
+            isUpdating = false; // 🔹 Reset lock
+            return;
+        }
+
+        console.log("✅ Airtable record updated successfully:", fields);
+        showToast("✅ Changes saved successfully!", "success");
+
+        // ✅ Refresh page **only if** the record was updated successfully
+        setTimeout(() => {
+            isUpdating = false; // 🔹 Unlock before refresh
+            location.reload();
+        }, 2000); 
+
+    } catch (error) {
+        console.error("❌ Error updating Airtable:", error);
+        showToast(`❌ Error saving job details: ${error.message}`, "error");
+        isUpdating = false; // 🔹 Reset lock
+    }
+}
+
+    
+function toggleDeleteButton() {
+    const deleteButton = document.getElementById("delete-images-btn");
+    const images = document.querySelectorAll(".image-container img"); // Change selector based on your structure
+
+    if (images.length > 0) {
+        deleteButton.style.display = "block"; // Show button if images exist
+    } else {
+        deleteButton.style.display = "none"; // Hide button if no images
+    }
+}
+
+// ✅ Call this function after images load or after deletion
+document.addEventListener("DOMContentLoaded", toggleDeleteButton);
     
     
     document.querySelectorAll(".job-link").forEach(link => {
