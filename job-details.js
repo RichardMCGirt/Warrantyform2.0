@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 console.log("📌 Deleting Image ID:", imageId);
 
                 // Determine field name
-                const container = checkbox.closest("#issue-pictures") ? "Picture(s) of Issue" : "Completed Pictures";
+                const container = checkbox.closest("#issue-pictures") ? "Picture(s) of Issue" : "Completed  Pictures";
                 console.log("🔄 Deleting from field:", container);
 
                 await deleteImageFromAirtable(recordId, imageId, container);
@@ -206,10 +206,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     
         const data = await response.json();
     
-        console.log("📌 Total Records Returned:", data.records ? data.records.length : 1);
-        
+        console.log("📌 Airtable Response Data:", data);
+    
+        if (data.fields && data.fields["Completed Pictures"]) {
+            console.log("✅ Completed Pictures:", data.fields["Completed Pictures"]);
+        } else {
+            console.warn("⚠️ 'Completed Pictures' field is missing or empty.");
+        }
+    
         return data;
     }
+    
     
     async function updateAirtableRecord(tableName, recordId, fields) {
         const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${tableName}/${recordId}`;
@@ -278,14 +285,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 function populatePrimaryFields(job) {
     console.log("🛠 Populating UI with Record ID:", job["id"]);
 
-    // Ensure "Lot Number and Community/Neighborhood" field is correctly set
-    if (job["Lot Number and Community/Neighborhood"]) {
-        console.log("✅ Updating UI with Lot Number and Community/Neighborhood:", job["Lot Number and Community/Neighborhood"]);
-        setInputValue("job-name", job["Lot Number and Community/Neighborhood"]);
-    } else {
-        console.warn("⚠️ Missing Lot Number and Community/Neighborhood field in the record.");
-    }
-
+    setInputValue("job-name", job["Lot Number and Community/Neighborhood"]);
     setInputValue("field-tech", job["field tech"]);
     setInputValue("address", job["Address"]);
     setInputValue("homeowner-name", job["Homeowner Name"]);
@@ -294,7 +294,13 @@ function populatePrimaryFields(job) {
     setInputValue("dow-completed", job["DOW to be Completed"]); 
     setInputValue("field-status", job["Status"]);
 
-    // **Check if Status is "Scheduled- Awaiting Field" and hide specific fields**
+    // ✅ Load images first
+    displayImages(job["Picture(s) of Issue"], "issue-pictures");
+    displayImages(job["Completed Pictures"], "completed-pictures");
+
+    console.log("✅ Images Loaded - Checking Status...");
+
+    // ✅ Now check job status after images have loaded
     if (job["Status"] === "Scheduled- Awaiting Field") {
         console.log("🚨 Job is 'Scheduled- Awaiting Field' - Hiding certain input fields.");
         hideElementById("billable-status");
@@ -308,35 +314,27 @@ function populatePrimaryFields(job) {
         hideElementById("subcontractor-dropdown1");
         hideElementById("field-review-needed");
         hideElementById("field-tech-reviewed");
-        hideElementById("issue-pictures"); 
         hideElementById("subcontractor-dropdown");
         hideElementById("additional-fields-container");
         hideElementById("message-container");
-        hideElementById("subcontractor-dropdown1");
     } else {
         console.log("✅ Status is NOT 'Scheduled- Awaiting Field' - Showing all fields.");
         showElement("job-completed");
         showElement("job-completed-label");
 
-        // ✅ Populate values if status is NOT "Scheduled- Awaiting Field"
         setInputValue("billable-status", job["Billable/ Non Billable"]);
         setInputValue("homeowner-builder", job["Homeowner Builder pay"]);
         setInputValue("billable-reason", job["Billable Reason (If Billable)"]);
         setInputValue("subcontractor", job["Subcontractor"]);
         setInputValue("materials-needed", job["Materials Needed"]);
-        setInputValue("subcontractor-payment", job["Subcontractor Payment"]); // ✅ Ensure number is set
+        setInputValue("subcontractor-payment", job["Subcontractor Payment"]); 
 
-   
         setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
     }
 
     setCheckboxValue("job-completed", job["Job Completed"]);
 
-    // Load images from Airtable
-    displayImages(job["Picture(s) of Issue"], "issue-pictures");
-    displayImages(job["Completed Pictures"], "completed-pictures");
-
-    // **If status is "Field Tech Review Needed", hide completed pictures and job completed elements**
+    // ✅ Now hide elements if "Field Tech Review Needed"
     if (job["Status"] === "Field Tech Review Needed") {
         console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
         hideElementById("completed-pictures");
@@ -344,12 +342,13 @@ function populatePrimaryFields(job) {
         hideElementById("job-completed");
         hideElementById("job-completed-label");
         hideElementById("completed-pictures-heading");
-        hideElementById("upload-completed-picture"); // Hide file input
-        hideElementById("file-input-container"); // ✅ Hides the file input container
+        hideElementById("upload-completed-picture"); 
+        hideElementById("file-input-container"); 
     }
-    showElement("save-job"); 
 
-} 
+    showElement("save-job"); 
+}
+
 
 // Function to hide an element safely
 function hideElementById(elementId) {
@@ -379,75 +378,160 @@ async function loadJobDetails(recordId) {
         if (jobData && jobData.fields) {
             console.log("✅ Job data fetched:", jobData.fields);
 
-            // Ensure the fetched job matches the `Lot Number and Community/Neighborhood`
-            if (jobData.fields["Lot Number and Community/Neighborhood"]) {
-                console.log("🏠 Lot Number and Community/Neighborhood:", jobData.fields["Lot Number and Community/Neighborhood"]);
-            } else {
-                console.warn("⚠️ Missing Lot Number and Community/Neighborhood field.");
-            }
-
             populatePrimaryFields(jobData.fields);
-        }
 
+            // Ensure images exist before displaying them
+            const completedPictures = jobData.fields["Completed Pictures"] || [];
+            const issuePictures = jobData.fields["Picture(s) of Issue"] || [];
+
+            console.log("🖼️ Completed Pictures Debug:", completedPictures);
+            console.log("🖼️ Issue Pictures Debug:", issuePictures);
+
+            // ✅ Call displayImages immediately
+            displayImages(completedPictures, "completed-pictures");
+            displayImages(issuePictures, "issue-pictures");
+        }
     } catch (error) {
         console.error("❌ Error fetching job details:", error);
     }
 }
 
+
+
+
+
     
 function displayImages(files, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-        console.warn(`⚠️ Container not found: ${containerId}`);
-        return;
+        const container = document.getElementById(containerId);
+        if (!container) {
+            console.warn(`⚠️ Container not found: ${containerId}`);
+            return;
+        }
+    
+        container.innerHTML = ""; // Clear existing content
+    
+        if (!files || files.length === 0) {
+            console.warn(`⚠️ No files found in ${containerId}`);
+            container.innerHTML = "<p>No files found.</p>";
+            return;
+        }
+    
+        console.log(`✅ Displaying files for ${containerId}:`, files); // Log files array
+    
+        files.forEach((file) => {
+            if (!file.url) {
+                console.error("❌ Missing 'url' field in file object:", file);
+                return;
+            }
+    
+            const wrapperDiv = document.createElement("div");
+            wrapperDiv.classList.add("file-wrapper");
+            wrapperDiv.style.display = "inline-block";
+            wrapperDiv.style.margin = "10px";
+            wrapperDiv.style.position = "relative";
+            wrapperDiv.style.textAlign = "center";
+            wrapperDiv.style.width = "200px";
+    
+            // Checkbox for selecting files to delete
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.classList.add("file-checkbox");
+            checkbox.dataset.fileId = file.id;
+            checkbox.style.position = "absolute";
+            checkbox.style.top = "5px";
+            checkbox.style.right = "5px";
+            checkbox.style.zIndex = "10";
+            checkbox.style.width = "18px";
+            checkbox.style.height = "18px";
+            checkbox.style.cursor = "pointer";
+    
+            // Filename label
+            const fileLabel = document.createElement("p");
+            fileLabel.innerText = file.filename || "Unknown File";
+            fileLabel.style.fontSize = "12px";
+            fileLabel.style.marginTop = "5px";
+            fileLabel.style.wordBreak = "break-word"; // Ensure long filenames wrap properly
+    
+            // Detect file type
+            if (file.type === "application/pdf") {
+                // **Render PDF Preview**
+                const canvas = document.createElement("canvas");
+                canvas.style.width = "100%";
+                canvas.style.border = "1px solid #ddd";
+                canvas.style.borderRadius = "5px";
+                canvas.style.cursor = "pointer";
+    
+                // Open PDF on click
+                canvas.addEventListener("click", () => window.open(file.url, "_blank"));
+    
+                // Render PDF preview using PDF.js
+                pdfjsLib.getDocument(file.url).promise.then((pdf) => {
+                    pdf.getPage(1).then((page) => {
+                        const scale = 1;
+                        const viewport = page.getViewport({ scale });
+                        const context = canvas.getContext("2d");
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+    
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport,
+                        };
+                        page.render(renderContext);
+                    });
+                });
+    
+                wrapperDiv.appendChild(checkbox);
+                wrapperDiv.appendChild(canvas);
+                wrapperDiv.appendChild(fileLabel);
+            } else if (file.type.startsWith("image/")) {
+                // **Render Image Preview**
+                const imgElement = document.createElement("img");
+                imgElement.src = file.url;
+                imgElement.setAttribute("data-file-id", file.id);
+                imgElement.classList.add("uploaded-file");
+                imgElement.style.maxWidth = "100%";
+                imgElement.style.borderRadius = "5px";
+                imgElement.style.border = "1px solid #ddd";
+                imgElement.style.cursor = "pointer";
+    
+                // Open image on click
+                imgElement.addEventListener("click", () => window.open(file.url, "_blank"));
+    
+                wrapperDiv.appendChild(checkbox);
+                wrapperDiv.appendChild(imgElement);
+                wrapperDiv.appendChild(fileLabel);
+            } else {
+                // **Other File Types (Download Link)**
+                const fileLink = document.createElement("a");
+                fileLink.href = file.url;
+                fileLink.innerText = "Download File";
+                fileLink.target = "_blank";
+                fileLink.style.display = "block";
+                fileLink.style.padding = "5px";
+                fileLink.style.background = "#f4f4f4";
+                fileLink.style.borderRadius = "5px";
+                fileLink.style.textDecoration = "none";
+    
+                wrapperDiv.appendChild(checkbox);
+                wrapperDiv.appendChild(fileLink);
+                wrapperDiv.appendChild(fileLabel);
+            }
+    
+            container.appendChild(wrapperDiv);
+        });
+    
+        // ✅ Force reflow and repaint (fixes images not appearing initially)
+        container.style.display = "none";
+        container.offsetHeight; // Force reflow
+        container.style.display = "block";
+    
+        console.log(`✅ Files displayed for ${containerId}`);
     }
+    
+    
 
-    container.innerHTML = "";
 
-    if (!files || files.length === 0) {
-        container.innerHTML = "<p>No images found.</p>";
-        return;
-    }
-
-    files.forEach((file) => {
-        const wrapperDiv = document.createElement("div");
-        wrapperDiv.classList.add("file-wrapper");
-        wrapperDiv.style.display = "inline-block";
-        wrapperDiv.style.margin = "10px";
-        wrapperDiv.style.position = "relative";
-        wrapperDiv.style.textAlign = "center";
-
-        // Checkbox for selecting images to delete
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.classList.add("image-checkbox");
-        checkbox.dataset.imageId = file.id;
-        checkbox.style.position = "absolute";
-        checkbox.style.top = "5px";
-        checkbox.style.right = "5px";
-        checkbox.style.zIndex = "10";
-        checkbox.style.width = "18px";
-        checkbox.style.height = "18px";
-        checkbox.style.cursor = "pointer";
-
-        // Image element
-        const imgElement = document.createElement("img");
-        imgElement.src = file.url;
-        imgElement.setAttribute("data-image-id", file.id); // Set image ID for deletion
-        imgElement.classList.add("uploaded-image");
-        imgElement.style.maxWidth = "200px";
-        imgElement.style.borderRadius = "5px";
-        imgElement.style.border = "1px solid #ddd";
-        imgElement.style.cursor = "pointer";
-
-        imgElement.addEventListener("click", () => window.open(file.url, "_blank"));
-
-        // Append elements
-        wrapperDiv.appendChild(checkbox);
-        wrapperDiv.appendChild(imgElement);
-        container.appendChild(wrapperDiv);
-    });
-}
 
 document.getElementById("delete-images-btn").addEventListener("click", async function (event) {
     event.preventDefault(); // ✅ Prevent page refresh
@@ -476,7 +560,7 @@ document.getElementById("delete-images-btn").addEventListener("click", async fun
         console.log("📌 Deleting Image ID:", imageId);
 
         // Determine field name
-        const container = checkbox.closest("#issue-pictures") ? "Picture(s) of Issue" : "Completed Pictures";
+        const container = checkbox.closest("#issue-pictures") ? "Picture(s) of Issue" : "Completed  Pictures";
         console.log("🔄 Deleting from field:", container);
 
         await deleteImageFromAirtable(recordId, imageId, container);
@@ -544,6 +628,8 @@ async function deleteImageFromAirtable(recordId, imageId, imageField) {
     
             if (recordData.fields["Picture(s) of Issue"]) {
                 console.log("🖼️ Issue Pictures Field Data:", recordData.fields["Picture(s) of Issue"]);
+                console.log("🖼️ Completed Pictures Field Data:", recordData.fields["Completed  Pictures"]);
+
             } else {
                 console.warn("⚠️ 'Picture(s) of Issue' field is empty or missing.");
             }
@@ -783,12 +869,12 @@ async function deleteImageFromAirtable(recordId, imageId, imageField) {
     }
     
     async function fetchCurrentImagesFromAirtable(recordId, targetField) {
-        const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}/${recordId}`;
+        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}/${recordId}`;
     
         try {
             console.log(`📡 Fetching existing images from Airtable field: ${targetField}`);
             const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${airtableApiKey}` }
+                headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
             });
     
             if (!response.ok) {
@@ -797,12 +883,26 @@ async function deleteImageFromAirtable(recordId, imageId, imageField) {
             }
     
             const data = await response.json();
-            return data.fields[targetField] ? data.fields[targetField] : [];
+    
+            if (data.fields && data.fields[targetField]) {
+                console.log(`✅ Images found in field '${targetField}':`, data.fields[targetField]);
+    
+                // ✅ Ensure we return an array of objects with {url, id}
+                return data.fields[targetField].map(image => ({
+                    url: image.url,
+                    id: image.id
+                }));
+            }
+    
+            console.warn(`⚠️ No images found in field '${targetField}'.`);
+            return [];
         } catch (error) {
             console.error("❌ Error fetching current images from Airtable:", error);
             return [];
         }
     }
+    
+    
     
     
     // 🔹 Dropbox Image Upload
@@ -814,6 +914,7 @@ async function deleteImageFromAirtable(recordId, imageId, imageField) {
     
         console.log(`📂 Uploading ${files.length} file(s) to Dropbox for field: ${targetField}`);
     
+        // ✅ Fetch existing images from Airtable to prevent overwriting
         let existingImages = await fetchCurrentImagesFromAirtable(recordId, targetField) || [];
         const uploadedUrls = [...existingImages]; // Preserve existing images
     
@@ -821,7 +922,7 @@ async function deleteImageFromAirtable(recordId, imageId, imageField) {
             try {
                 const dropboxUrl = await uploadFileToDropbox(file);
                 if (dropboxUrl) {
-                    uploadedUrls.push({ url: dropboxUrl }); // Append new file URLs
+                    uploadedUrls.push({ url: dropboxUrl }); // ✅ Append new images
                 }
             } catch (error) {
                 console.error("❌ Error uploading to Dropbox:", error);
@@ -831,12 +932,13 @@ async function deleteImageFromAirtable(recordId, imageId, imageField) {
         console.log("✅ Final file list to save in Airtable:", uploadedUrls);
     
         if (uploadedUrls.length > 0) {
-            await updateAirtableRecord(airtableTableName, recordId, { [targetField]: uploadedUrls });
+            await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId, { [targetField]: uploadedUrls });
     
-            // 🎯 Refresh UI to show newly uploaded images
-            displayImages(uploadedUrls, targetField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures", targetField);
+            // ✅ Refresh UI after upload
+            displayImages(uploadedUrls, targetField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
         }
     }
+    
     
     // 🔹 Upload File to Dropbox
     async function uploadFileToDropbox(file) {
@@ -971,38 +1073,58 @@ async function deleteImageFromAirtable(recordId, imageId, imageField) {
     
             console.log(`📌 Found Branch 'b': ${branchB}`);
     
-            // 2️⃣ Fetch subcontractors where `Vanir Branch` matches `b`
-            console.log(`🚀 Fetching subcontractors where Vanir Branch = '${branchB}'`);
+            // 2️⃣ Fetch all subcontractors with offset handling
+            let allSubcontractors = await fetchAllSubcontractors(airtableBaseId, subcontractorTableId, branchB);
     
-            const subcontractorUrl = `https://api.airtable.com/v0/${airtableBaseId}/${subcontractorTableId}?filterByFormula=${encodeURIComponent(`{Vanir Branch} = '${branchB}'`)}&fields[]=Subcontractor Company Name&fields[]=Vanir Branch`;
-    
-            console.log(`🔗 Fetching Subcontractors URL: ${subcontractorUrl}`);
-    
-            const subcontractorResponse = await fetch(subcontractorUrl, {
-                headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
-            });
-    
-            if (!subcontractorResponse.ok) {
-                throw new Error(`❌ Error fetching subcontractors: ${subcontractorResponse.statusText}`);
-            }
-    
-            const subcontractorData = await subcontractorResponse.json();
-            console.log("📦 Subcontractor API Response:", subcontractorData);
-    
-            const subcontractors = subcontractorData.records.map(record => ({
-                name: record.fields['Subcontractor Company Name'] || 'Unnamed Subcontractor',
-                vanirOffice: record.fields['Vanir Branch'] || 'Unknown Branch'
-            }));
-    
-            console.log("✅ Filtered Subcontractors:", subcontractors);
+            // 🔹 LOG TOTAL MATCHING SUBCONTRACTORS
+            console.log(`✅ Total Subcontractors Matching Branch '${branchB}':`, allSubcontractors.length);
     
             // 3️⃣ Populate the dropdown
-            populateSubcontractorDropdown(subcontractors);
+            populateSubcontractorDropdown(allSubcontractors);
     
         } catch (error) {
             console.error("❌ Error:", error);
         }
     }
+    
+    // 🔹 Function to fetch all subcontractors (Handles offsets)
+    async function fetchAllSubcontractors(baseId, tableId, branchB) {
+        let allRecords = [];
+        let offset = null;
+    
+        do {
+            let url = `https://api.airtable.com/v0/${baseId}/${tableId}?filterByFormula=${encodeURIComponent(`{Vanir Branch} = '${branchB}'`)}&fields[]=Subcontractor Company Name&fields[]=Vanir Branch`;
+            if (offset) {
+                url += `&offset=${offset}`;
+            }
+    
+            console.log(`🔗 Fetching Subcontractors URL: ${url}`);
+    
+            const response = await fetch(url, {
+                headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
+            });
+    
+            if (!response.ok) {
+                throw new Error(`❌ Error fetching subcontractors: ${response.statusText}`);
+            }
+    
+            const data = await response.json();
+            allRecords.push(...data.records);
+    
+            // If Airtable returns an offset, we need to fetch more records
+            offset = data.offset || null;
+    
+        } while (offset);
+    
+        console.log(`📦 Retrieved ${allRecords.length} total subcontractors from Airtable.`);
+    
+        return allRecords.map(record => ({
+            name: record.fields['Subcontractor Company Name'] || 'Unnamed Subcontractor',
+            vanirOffice: record.fields['Vanir Branch'] || 'Unknown Branch'
+        }));
+    }
+    
+    
     
     
     async function getExistingDropboxLink(filePath) {

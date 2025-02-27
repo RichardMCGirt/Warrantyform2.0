@@ -220,19 +220,54 @@ input[type="file"] {
 /* ============================= */
 .file-preview {
     display: flex;
-    flex-wrap: wrap;
+    overflow-x: auto;
+    white-space: nowrap;
     gap: 10px;
-    margin-top: 10px;
+    padding: 10px;
+    width: 100%;
+    max-width: 100%;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Hides scrollbar for a cleaner look */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
 }
 
-.file-preview img {
-    min-height: 200px; /* Minimum height for images */
-    max-width: 100%; /* Ensures it doesn't overflow */
-    object-fit: cover; /* Ensures the image fills the space while maintaining aspect ratio */
-    border-radius: 5px; /* Optional: Rounds corners */
-    display: block;
-    margin: 10px auto; /* Centers the images */
+.file-preview::-webkit-scrollbar {
+    display: none; /* Hides scrollbar in WebKit browsers */
 }
+
+.file-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    scroll-snap-align: start;
+    min-width: 120px;
+    max-width: 180px;
+    text-align: center;
+}
+
+.file-wrapper img, .file-wrapper iframe {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+}
+
+.file-wrapper label {
+    font-size: 14px;
+    color: #333;
+    margin-top: 5px;
+}
+
+.file-wrapper input[type="checkbox"] {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
 
 
 /* ============================= */
