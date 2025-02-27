@@ -250,7 +250,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             const recordId = await getRecordIdByAddress(address);
             if (!recordId) {
                 console.error("❌ No record ID found for this address. Cannot update Airtable.");
-                alert("Error: No record found for this address.");
+                showToast("❌ Error: No record found for this address.", "error"); // ❌ Show error toast
                 return;
             }
     
@@ -275,16 +275,25 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (!response.ok) {
                 console.error(`❌ Airtable Error: ${response.status} ${response.statusText}`);
                 console.error("📜 Full Error Message from Airtable:", result);
+                showToast(`❌ Error ${response.status}: ${response.statusText}`, "error"); // ❌ Show error toast
                 throw new Error(`Error ${response.status}: ${JSON.stringify(result, null, 2)}`);
             }
     
             console.log("✅ Airtable record updated successfully:", fields);
-            alert("Changes saved successfully!");
+            showToast("✅ Changes saved successfully!", "success"); // ✅ Show success toast
+    
+            // ✅ Refresh page after 2 seconds
+            setTimeout(() => {
+                location.reload();
+            }, 2000); 
+    
         } catch (error) {
             console.error("❌ Error updating Airtable:", error);
-            alert(`Error saving job details. ${error.message}`);
+            showToast(`❌ Error saving job details: ${error.message}`, "error"); // ❌ Show error toast
         }
     }
+    
+    
     
     
     document.querySelectorAll(".job-link").forEach(link => {
@@ -316,7 +325,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     
     
-// 🔹 Populate Primary Fields
 // 🔹 Populate Primary Fields
 async function populatePrimaryFields(job) { // ✅ Make function async
     console.log("🛠 Populating UI with Record ID:", job["id"]);
@@ -440,7 +448,6 @@ async function displayImages(files, containerId) {
         wrapperDiv.style.textAlign = "center";
         wrapperDiv.style.width = "200px";
 
-        // Checkbox for selecting files to delete
         // Checkbox for selecting files to delete
 const checkbox = document.createElement("input");
 checkbox.type = "checkbox";
@@ -579,13 +586,6 @@ document.getElementById("delete-images-btn").addEventListener("click", async fun
     await loadImagesForLot(lotName, document.getElementById("field-status")?.value);
 });
 
-
-
-
-
-
-
-
 /** ✅ Function to remove images from Airtable */
 async function deleteImagesByLotName(lotName, imageIdsToDelete, imageField) {
     console.log(`🗑️ Attempting to delete images from '${imageField}' for Lot Name:`, lotName);
@@ -679,9 +679,6 @@ async function fetchImagesByLotName(lotName, imageField) {
     }
 }
 
-
-
-
 async function loadImagesForLot(lotName, status) {
     console.log("📡 Loading images for lot:", lotName, "| Status:", status);
 
@@ -746,11 +743,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-    
-    
-   
-    
-    
     document.addEventListener("DOMContentLoaded", function () {
         console.log("✅ Job Details Page Loaded.");
     
@@ -768,12 +760,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-
-    
-    
-    
-    
-    
     document.getElementById("save-job").addEventListener("click", async function () {
         console.log("🔄 Save button clicked. Collecting all field values...");
     
@@ -834,7 +820,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     
-
+    function showToast(message, type = "success") {
+        let toast = document.getElementById("toast-message");
+    
+        // Create toast element if it doesn’t exist
+        if (!toast) {
+            toast = document.createElement("div");
+            toast.id = "toast-message";
+            toast.className = "toast-container";
+            document.body.appendChild(toast);
+        }
+    
+        toast.textContent = message;
+        toast.classList.add("show");
+    
+        // Add different styles for error and success
+        toast.style.background = type === "error" ? "rgba(200, 0, 0, 0.85)" : "rgba(0, 128, 0, 0.85)";
+    
+        // Hide toast after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+    }
+    
+    
+    // Call this function when saving job details
+    showToast("✅ Job details saved successfully!");
+    
     
     // 🔹 Fetch Dropbox Token from Airtable
     async function fetchDropboxToken() {
@@ -889,9 +901,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
- 
-    
-
     async function refreshDropboxAccessToken(refreshToken, dropboxAppKey, dropboxAppSecret) {
         console.log("🔄 Refreshing Dropbox Access Token...");
         const dropboxAuthUrl = "https://api.dropboxapi.com/oauth2/token";
@@ -977,11 +986,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-        
-    
-    
-    
-    
     // 🔹 Dropbox Image Upload
     async function uploadToDropbox(files, targetField) {
         if (!dropboxAccessToken) {
@@ -1023,8 +1027,6 @@ document.addEventListener("DOMContentLoaded", () => {
             displayImages(uploadedUrls, targetField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
         }
     }
-    
-    
     
     // 🔹 Upload File to Dropbox
     async function uploadFileToDropbox(file) {
@@ -1212,9 +1214,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }));
     }
     
-    
-    
-    
     async function getExistingDropboxLink(filePath) {
         const url = "https://api.dropboxapi.com/2/sharing/list_shared_links";
         try {
@@ -1309,9 +1308,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // ✅ Call this function when the page loads
     document.addEventListener('DOMContentLoaded', populateSubcontractorDropdown);
     
-      
-    
-
 
     // 🔹 Utility Functions
     function setInputValue(id, value) {
