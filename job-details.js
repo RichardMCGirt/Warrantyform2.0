@@ -63,51 +63,93 @@ function openMapApp() {
 
 document.addEventListener("DOMContentLoaded", async function () {
     console.log("🚀 Page Loaded: JavaScript execution started!");
-    
+    console.log("🌍 Current URL:", window.location.href);
+
+    // Load selected images from localStorage
+    let selectedImages = JSON.parse(localStorage.getItem("selectedImages")) || {};
+    console.log("📁 Loaded selected images from localStorage:", selectedImages);
+
+    // Extract recordId from URL parameters
     const params = new URLSearchParams(window.location.search);
-    const recordId = params.get("id");
-    const airtableApiKey = window.env.AIRTABLE_API_KEY;
-    const airtableBaseId = window.env.AIRTABLE_BASE_ID;
-    const airtableTableName = window.env.AIRTABLE_TABLE_NAME;
-    console.log("🆔 Record ID from URL:", recordId);
+    let recordId = params.get("id");
+    console.log("🆔 Extracted Record ID:", recordId);
 
- 
-    const messageContainer = document.getElementById("message-container"); // Create a container for the message
-
- 
-
-
-
+    // Handle missing recordId
     if (!recordId) {
-        alert("No job selected.");
-        window.location.href = "index.html";
+        console.error("❌ ERROR: No record ID found in URL!");
+
+        // Preserve other query parameters while redirecting
+        let newUrl = new URL(window.location.href);
+        newUrl.searchParams.set("id", "DEFAULT_RECORD_ID"); // Replace with a valid default ID
+
+        alert("No job selected. Redirecting to a default job.");
+        window.location.href = newUrl.toString(); // Redirect with a valid ID
         return;
     }
 
+    console.log("🆔 Record ID successfully retrieved:", recordId);
+
+    // Extract Airtable credentials
+    const airtableApiKey = window.env?.AIRTABLE_API_KEY || null;
+    const airtableBaseId = window.env?.AIRTABLE_BASE_ID || null;
+    const airtableTableName = window.env?.AIRTABLE_TABLE_NAME || null;
+
+    // Validate Airtable credentials
+    if (!airtableApiKey || !airtableBaseId || !airtableTableName) {
+        console.error("❌ Missing Airtable credentials! Please check your environment variables.");
+        alert("Configuration error: Missing Airtable credentials.");
+        return;
+    }
+
+    console.log("🔑 Airtable Credentials:");
+    console.log("   🔹 API Key:", airtableApiKey ? "Loaded" : "Not Found");
+    console.log("   🔹 Base ID:", airtableBaseId);
+    console.log("   🔹 Table Name:", airtableTableName);
+
     try {
-        console.log("✅ Fetching Job Details...");
+        // Load job details
+        console.log("📥 Initiating job details fetch...");
+        await loadJobDetails(recordId);
+        console.log("✅ Job details loaded successfully!");
 
-        // ✅ Fetch Primary Job Details
+        // Fetch primary job details from Airtable
+        console.log("📥 Fetching Primary Job Details from Airtable...");
         const primaryData = await fetchAirtableRecord(airtableTableName, recordId);
-        console.log("📋 Primary Data Fetched:", primaryData);
-        populatePrimaryFields(primaryData.fields);
-
-        // ✅ Fetch Dropbox Token
-        dropboxAccessToken = await fetchDropboxToken();
         
-        if (!dropboxAccessToken) {
+        if (!primaryData || !primaryData.fields) {
+            console.warn("⚠️ Warning: No primary data retrieved. Check Airtable API or record ID.");
         } else {
+            console.log("📋 Primary Data Fetched:", primaryData);
+            populatePrimaryFields(primaryData.fields);
         }
 
-        // ✅ Fetch Subcontractors Based on `b` Value and Populate Dropdown
-        console.log("✅ Fetching subcontractors based on branch `b`...");
-        await fetchAndPopulateSubcontractors(recordId);
-        await loadJobDetails(recordId);
+        // Fetch Dropbox token
+        console.log("🔑 Fetching Dropbox Token...");
+        let dropboxAccessToken = await fetchDropboxToken();
+        if (!dropboxAccessToken) {
+            console.warn("⚠️ Warning: Dropbox token not retrieved!");
+        } else {
+            console.log("✅ Dropbox token retrieved successfully.");
+        }
 
+        // Fetch subcontractors based on branch `b`
+        console.log("📥 Fetching subcontractors based on branch `b`...");
+        await fetchAndPopulateSubcontractors(recordId);
+        console.log("✅ Subcontractor dropdown populated!");
+
+        // Reload job details for verification
+        console.log("🔄 Reloading job details for verification...");
+        await loadJobDetails(recordId);
+        console.log("✅ Job details reloaded successfully!");
 
     } catch (error) {
-        console.error("❌ Error loading job details:", error);
-    }   
+        console.error("❌ Error encountered during job details loading process:", error);
+    }
+
+
+
+
+
 
     // ✅ Handle Dropbox Image Upload
     document.getElementById("upload-issue-picture").addEventListener("change", async function (event) {
@@ -321,65 +363,141 @@ async function loadJobDetails(recordId) {
     
 function displayImages(files, containerId) {
     const container = document.getElementById(containerId);
-    
     if (!container) {
-        console.warn(`⚠️ Warning: Element with ID '${containerId}' not found. Skipping image display.`);
-        return; // Prevent further execution if the container is missing
+        console.warn(`⚠️ Container not found: ${containerId}`);
+        return;
     }
 
-    container.innerHTML = ""; // Clear previous files
+    container.innerHTML = "";
 
-    console.log(`📡 Displaying files in: ${containerId}`, files);
+    if (!files || files.length === 0) {
+        container.innerHTML = "<p>No images found.</p>";
+        return;
+    }
 
-    if (files && files.length > 0) {
-        files.forEach((file) => {
-            console.log("🖼️ Processing file:", file);
+    files.forEach((file) => {
+        const wrapperDiv = document.createElement("div");
+        wrapperDiv.classList.add("file-wrapper");
+        wrapperDiv.style.display = "inline-block";
+        wrapperDiv.style.margin = "10px";
+        wrapperDiv.style.position = "relative";
+        wrapperDiv.style.textAlign = "center";
 
-            let fileUrl = file.url;
+        // Checkbox for selecting images to delete
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.classList.add("image-checkbox");
+        checkbox.dataset.imageId = file.id;
+        checkbox.style.position = "absolute";
+        checkbox.style.top = "5px";
+        checkbox.style.right = "5px";
+        checkbox.style.zIndex = "10";
+        checkbox.style.width = "18px";
+        checkbox.style.height = "18px";
+        checkbox.style.cursor = "pointer";
 
-            // Create a wrapper div
-            const wrapperDiv = document.createElement("div");
-            wrapperDiv.classList.add("file-wrapper");
-            wrapperDiv.style.display = "inline-block";
-            wrapperDiv.style.margin = "10px";
-            wrapperDiv.style.position = "relative";
-            wrapperDiv.style.textAlign = "center";
+        // Log the image ID when the checkbox is clicked
+        checkbox.addEventListener("click", (event) => {
+            if (!recordId) {
+                console.error("❌ ERROR: recordId is missing when clicking checkbox.");
+                alert("Error: No job record found.");
+                return;
+            }
+        
+            console.log(`🖼️ Checkbox clicked for Image ID: ${event.target.dataset.imageId}, Record ID: ${recordId}`);
+        });
+        
 
-            if (file.type === "application/pdf") {
-                const pdfLink = document.createElement("a");
-                pdfLink.href = fileUrl;
-                pdfLink.target = "_blank";
-                pdfLink.textContent = "Open PDF";
-                pdfLink.style.display = "block";
-                pdfLink.style.color = "blue";
-                pdfLink.style.textDecoration = "underline";
-                pdfLink.style.marginTop = "5px";
+        // Image element
+        const imgElement = document.createElement("img");
+        imgElement.src = file.url;
+        imgElement.setAttribute("data-image-id", file.id); // Set image ID for deletion
+        imgElement.classList.add("uploaded-image");
+        imgElement.style.maxWidth = "200px";
+        imgElement.style.borderRadius = "5px";
+        imgElement.style.border = "1px solid #ddd";
+        imgElement.style.cursor = "pointer";
 
-                wrapperDiv.appendChild(pdfLink);
-            } else {
-                const imgElement = document.createElement("img");
-                imgElement.src = fileUrl;
-                imgElement.classList.add("uploaded-image");
-                imgElement.style.maxWidth = "300px";
-                imgElement.style.borderRadius = "5px";
-                imgElement.style.border = "1px solid #ddd";
-                imgElement.style.cursor = "pointer";
+        imgElement.addEventListener("click", () => window.open(file.url, "_blank"));
 
-                imgElement.addEventListener("click", function () {
-                    console.log("🖼️ Image clicked:", fileUrl);
-                    window.open(fileUrl, "_blank");
-                });
+        // Append elements
+        wrapperDiv.appendChild(checkbox);
+        wrapperDiv.appendChild(imgElement);
+        container.appendChild(wrapperDiv);
+    });
+}
 
-                wrapperDiv.appendChild(imgElement);
+
+
+
+async function deleteImageFromAirtable(recordId, imageId, imageField) {
+    console.log("🗑️ Attempting to delete image", { recordId, imageId, imageField });
+
+    if (!recordId) {
+        console.error("❌ ERROR: recordId is missing when trying to delete an image.");
+        alert("Error: No record ID found.");
+        return;
+    }
+
+    console.log(`🗑 Deleting image ${imageId} from record ${recordId}, field: ${imageField}`);
+
+    const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}/${recordId}`;
+    const currentImages = await fetchCurrentImagesFromAirtable(recordId, imageField);
+    
+    if (!currentImages || currentImages.length === 0) {
+        console.warn("⚠️ No images found in Airtable.");
+        return;
+    }
+
+    // Remove the selected image
+    const updatedImages = currentImages.filter(image => image.id !== imageId);
+
+    // Get the image element
+    const imageElement = document.querySelector(`img[data-image-id="${imageId}"]`);
+    if (!imageElement) {
+        console.warn(`⚠️ Image element not found for ID: ${imageId}`);
+        return;
+    }
+
+    // Define white smoke animation
+    const style = document.createElement("style");
+    style.innerHTML = `
+        @keyframes poofToWhiteSmoke {
+            0% { opacity: 1; transform: scale(1); filter: blur(0); }
+            50% { opacity: 0.5; transform: scale(1.5); filter: blur(5px); background-color: rgba(255, 255, 255, 0.6); }
+            100% { opacity: 0; transform: scale(2); filter: blur(10px); background-color: rgba(255, 255, 255, 1); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Apply animation before removing the image
+    imageElement.style.animation = "poofToWhiteSmoke 2s ease forwards";
+
+    setTimeout(async () => {
+        try {
+            const response = await fetch(url, {
+                method: "PATCH",
+                headers: {
+                    Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ fields: { [imageField]: updatedImages.length > 0 ? updatedImages : [] } })
+            });
+
+            if (!response.ok) {
+                const errorDetails = await response.json();
+                console.error("❌ Error updating Airtable:", response.status, response.statusText, errorDetails);
+                return;
             }
 
-            container.appendChild(wrapperDiv);
-        });
-    } else {
-        console.warn("⚠️ No files found.");
-        container.innerHTML = "<p></p>";
-    }
+            console.log("✅ Image successfully deleted from Airtable:", await response.json());
+            imageElement.remove();
+        } catch (error) {
+            console.error("❌ Error updating record in Airtable:", error);
+        }
+    }, 2000); // Matches the animation duration
 }
+
 
 
     async function testFetchImages() {
@@ -939,6 +1057,39 @@ function displayImages(files, containerId) {
     // ✅ Call this function when the page loads
     document.addEventListener('DOMContentLoaded', populateSubcontractorDropdown);
     
+    document.addEventListener("DOMContentLoaded", function () {
+        const deleteBtn = document.getElementById("delete-images-btn");
+    
+        if (!deleteBtn) {
+            console.error("❌ ERROR: 'delete-images-btn' not found in DOM.");
+            return;
+        }
+    
+        deleteBtn.addEventListener("click", async function () {
+            if (!recordId) {
+                console.error("❌ ERROR: recordId is missing when deleting images.");
+                alert("Error: No job record found.");
+                return;
+            }
+    
+            console.log("🗑️ Deleting images for record:", recordId);
+    
+            const checkboxes = document.querySelectorAll(".image-checkbox:checked");
+            if (checkboxes.length === 0) {
+                alert("⚠️ Please select at least one image to delete.");
+                return;
+            }
+    
+            for (const checkbox of checkboxes) {
+                const imageId = checkbox.dataset.imageId;
+                const containerId = checkbox.closest("#issue-pictures") ? "Picture(s) of Issue" : "Completed Pictures";
+                await deleteImageFromAirtable(recordId, imageId, containerId);
+            }
+        });
+    });
+    
+    
+
 
     // 🔹 Utility Functions
     function setInputValue(id, value) {

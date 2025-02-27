@@ -185,6 +185,31 @@ input[type="checkbox"] {
     margin-top: 15px;
 }
 
+.file-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 10px;
+    text-align: center;
+}
+
+.file-wrapper button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 0, 0, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
 input[type="file"] {
     display: block;
     margin-top: 5px;

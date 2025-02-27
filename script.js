@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const billableOptions = ['Billable', 'Non Billable'];
     const reasonOptions = ['Another Trade Damaged Work', 'Homeowner Damage', 'Weather'];
     const homeownerbuilderOptions =['Homeowner','Builder', 'Subcontractor ']
+    console.log("🌍 Current URL:", window.location.href);
 
     let dropboxAccessToken;
     let dropboxAppKey;
