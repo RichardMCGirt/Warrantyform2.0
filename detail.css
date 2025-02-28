@@ -92,15 +92,30 @@ nav a.back-button:hover {
 /* ============================= */
 /* Job Details Container */
 /* ============================= */
+/* Default styling for job-name input */
 #job-name {
     text-align: center;
-    font-size: 28px; /* Adjust size as needed */
+    font-size: 28px; /* Default size */
     font-weight: bold;
     margin: 20px 0;
     background-color: transparent !important;
     border: none !important;
     text-decoration: underline;
+    width: 100%;
+    max-width: 90%; /* Prevents excessive stretching */
+    white-space: normal; /* Allows text to wrap */
+    word-wrap: break-word; /* Ensures long words break */
+    overflow-wrap: break-word; /* Ensures words don't overflow */
 }
+
+/* Responsive styling for smaller screens */
+@media (max-width: 600px) {
+    #job-name {
+        font-size: 20px; /* Reduce font size */
+        max-width: 100%; /* Allow full width on small screens */
+    }
+}
+
 .scrollable-content {
     margin-top: 10px; /* Adjust for fixed nav */
     height: calc(100vh - 20px); /* Adjust for viewport height */
@@ -511,6 +526,11 @@ button:hover {
     #subcontractor-payment {
         font-size: 18px;
         padding: 16px;
+    }
+
+    #job-name {
+        font-size: 25px; /* Reduce font size */
+        max-width: 100%; /* Allow full width on small screens */
     }
 
     .form-group {
