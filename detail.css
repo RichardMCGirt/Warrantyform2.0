@@ -577,6 +577,7 @@ button:hover {
     #subcontractor-payment {
         font-size: 18px;
         padding: 16px;
+        width: 150px;
     }
 
     #job-name {
