@@ -169,13 +169,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.error("❌ Error loading job details:", error);
     }
 
-
-
-
-
-
-
-
     // ✅ Handle Dropbox Image Upload
     document.getElementById("upload-issue-picture").addEventListener("change", async function (event) {
         const files = event.target.files;
@@ -199,54 +192,91 @@ document.addEventListener("DOMContentLoaded", async function () {
     
 
     // 🔹 Fetch Airtable Record Function
-    async function fetchAirtableRecord(tableName, recordId) {
-        const url = `https://api.airtable.com/v0/${airtableBaseId}/${tableName}/${recordId}`;
+    async function fetchAirtableRecord(tableName, lotNameOrRecordId) {
+        console.log("📡 Fetching record for:", lotNameOrRecordId);
     
-        console.log("🔍 Fetching Record from Airtable:", url);
-    
-        const response = await fetch(url, {
-            headers: { Authorization: `Bearer ${airtableApiKey}` }
-        });
-    
-        const data = await response.json();
-    
-        console.log("📌 Airtable Response Data:", data);
-    
-        if (data.fields && data.fields["Completed Pictures"]) {
-            console.log("✅ Completed Pictures:", data.fields["Completed Pictures"]);
-        } else {
-            console.warn("⚠️ 'Completed Pictures' field is missing or empty. Initializing as empty array.");
-            data.fields["Completed  Pictures"] = []; // Prevents undefined errors
-        }
-        
-    
-        return data;
-    }
-    
-    async function getRecordIdByAddress(lotName) {
-        if (!lotName) {
-            console.error("❌ Lot Name is missing. Cannot fetch record ID.");
+        if (!lotNameOrRecordId) {
+            console.error("❌ Lot Name or Record ID is missing. Cannot fetch record.");
             return null;
         }
     
-        console.log(`🔍 Searching for Record ID with Lot Name: "${lotName}"`);
+        let recordId = lotNameOrRecordId;
     
-        const filterFormula = `AND({Lot Number and Community/Neighborhood}="${lotName}")`;
-        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}?filterByFormula=${encodeURIComponent(filterFormula)}`;
+        // ✅ Check if the given `lotNameOrRecordId` is already an Airtable record ID
+        if (!recordId.startsWith("rec")) {
+            console.log("🔍 Searching for Record ID using Lot Name...");
+            recordId = await getRecordIdByLotName(lotNameOrRecordId);
+            
+            if (!recordId) {
+                console.warn(`⚠️ No record found for Lot Name: "${lotNameOrRecordId}"`);
+                return null;
+            }
+        }
     
-        console.log("🔗 Airtable API URL:", url);
+        // ✅ Use Record ID to fetch data
+        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${tableName}/${recordId}`;
+        console.log("🔗 Airtable API Request:", url);
     
         try {
             const response = await fetch(url, {
                 headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
             });
     
+            if (!response.ok) {
+                console.error(`❌ Error fetching record: ${response.status} ${response.statusText}`);
+                return null;
+            }
+    
             const data = await response.json();
+            console.log("✅ Airtable Record Data:", data);
+    
+            if (data.fields && !data.fields["Completed Pictures"]) {
+                console.warn("⚠️ 'Completed Pictures' field is missing. Initializing as empty array.");
+                data.fields["Completed Pictures"] = []; // Prevent undefined errors
+            }
+    
+            return data;
+        } catch (error) {
+            console.error("❌ Error fetching Airtable record:", error);
+            return null;
+        }
+    }
+    
+    
+    
+    
+    
+    async function getRecordIdByLotName(lotName) {
+        if (!lotName) {
+            console.error("❌ Lot Name is missing. Cannot fetch record ID.");
+            return null;
+        }
+    
+        // ✅ If already a Record ID, return it immediately
+        if (lotName.startsWith("rec")) {
+            console.log("✅ Given value is already a Record ID:", lotName);
+            return lotName;
+        }
+    
+        console.log(`🔍 Searching for Record ID using Lot Name: "${lotName}"`);
+    
+        // ✅ Ensure special characters are properly encoded
+        const filterFormula = `{Lot Number and Community/Neighborhood} = "${lotName}"`;
+        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}?filterByFormula=${encodeURIComponent(filterFormula)}`;
+    
+        console.log("🔗 Airtable API Request:", url);
+    
+        try {
+            const response = await fetch(url, {
+                headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
+            });
     
             if (!response.ok) {
                 console.error(`❌ Error fetching record ID: ${response.status} ${response.statusText}`);
                 return null;
             }
+    
+            const data = await response.json();
     
             if (data.records.length === 0) {
                 console.warn(`⚠️ No matching record found for Lot Name: "${lotName}"`);
@@ -261,29 +291,37 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
     
+        
+    
+    
+    
     
     
     
 
-    async function updateAirtableRecord(tableName, lotName, fields) {
-        const saveButton = document.getElementById("save-job");
+    async function updateAirtableRecord(tableName, lotNameOrRecordId, fields) {
+        console.log("📡 Updating Airtable record for:", lotNameOrRecordId);
     
-        if (saveButton) {
-            saveButton.disabled = false;
-        }
+        const saveButton = document.getElementById("save-job");
+        if (saveButton) saveButton.disabled = true;
     
         try {
-            const recordId = await getRecordIdByAddress(lotName); // Ensure lotName is passed
-            if (!recordId) {
-                console.error("❌ No record ID found for this Lot Name. Cannot update Airtable.");
-                showToast("❌ Error: No record found for this Lot Name.", "error");
+            let recordId = lotNameOrRecordId;
     
-                if (saveButton) saveButton.disabled = false;
-                return;
+            // ✅ If not a record ID, find the corresponding record ID
+            if (!recordId.startsWith("rec")) {
+                console.log("🔍 Searching for Record ID using Lot Name...");
+                recordId = await getRecordIdByLotName(lotNameOrRecordId);
+                if (!recordId) {
+                    console.error("❌ No record ID found for this Lot Name. Cannot update Airtable.");
+                    showToast("❌ Error: No record found for this Lot Name.", "error");
+    
+                    if (saveButton) saveButton.disabled = false;
+                    return;
+                }
             }
     
             const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${tableName}/${recordId}`;
-    
             console.log("📡 Sending API Request to Airtable:", url);
             console.log("📋 Fields Being Sent:", JSON.stringify(fields, null, 2));
     
@@ -295,9 +333,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                 },
                 body: JSON.stringify({ fields })
             });
-    
-            const result = await response.json();
-            console.log("📩 Airtable Response:", JSON.stringify(result, null, 2));
     
             if (!response.ok) {
                 console.error(`❌ Airtable Error: ${response.status} ${response.statusText}`);
@@ -317,6 +352,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (saveButton) saveButton.disabled = false;
         }
     }
+    
+        
     
     
 
