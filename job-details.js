@@ -1341,7 +1341,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // ✅ Call this function when the page loads
     document.addEventListener('DOMContentLoaded', populateSubcontractorDropdown);
     
-
     // 🔹 Utility Functions
     function setInputValue(id, value) {
         const element = document.getElementById(id);
