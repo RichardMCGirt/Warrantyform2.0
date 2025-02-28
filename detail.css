@@ -8,15 +8,8 @@ body {
     background-color: #f4f4f4;
     color: #333;
     padding-bottom: 80px; /* Add space at the bottom to prevent content from being blocked */
-    overflow-x: hidden; /* Prevent horizontal scrolling */
+    
 }
-
-html, body {
-    width: 100%;
-    overflow-x: hidden;
-}
-
-
 
 /* Toast Notification Styles */
 .toast-container {
@@ -99,30 +92,15 @@ nav a.back-button:hover {
 /* ============================= */
 /* Job Details Container */
 /* ============================= */
-/* Default styling for job-name input */
 #job-name {
     text-align: center;
-    font-size: 28px; /* Default size */
+    font-size: 28px; /* Adjust size as needed */
     font-weight: bold;
     margin: 20px 0;
     background-color: transparent !important;
     border: none !important;
     text-decoration: underline;
-    width: 100%;
-    max-width: 90%; /* Prevents excessive stretching */
-    white-space: normal; /* Allows text to wrap */
-    word-wrap: break-word; /* Ensures long words break */
-    overflow-wrap: break-word; /* Ensures words don't overflow */
 }
-
-/* Responsive styling for smaller screens */
-@media (max-width: 600px) {
-    #job-name {
-        font-size: 20px; /* Reduce font size */
-        max-width: 100%; /* Allow full width on small screens */
-    }
-}
-
 .scrollable-content {
     margin-top: 10px; /* Adjust for fixed nav */
     height: calc(100vh - 20px); /* Adjust for viewport height */
@@ -157,31 +135,6 @@ label {
     display: block;
 }
 
-.flex-container {
-    display: flex;
-    align-items: center;
-    justify-content: left;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-#address{
-    cursor: pointer; 
-                        background-color: #f8f9fa; 
-                        border: 2px solid #007BFF; 
-                        border-radius: 10px; 
-                        font-size: 18px; 
-                        text-align: center; 
-                        padding: 14px; 
-                        width: 100%; 
-                        max-width: 600px; 
-                        outline: none;
-                        font-weight: bold;
-                        color: #333;
-                        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-                        transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
-}
-
 input[type="text"],
 input[type="email"],
 textarea,
@@ -201,6 +154,7 @@ label[for="field-status"] {
 
 
 textarea {
+    min-height: 100px;
     resize: vertical;
 }
 
@@ -359,34 +313,6 @@ input[type="file"] {
 /* ============================= */
 /* File Preview */
 /* ============================= */
-.file-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Two equal columns */
-    gap: 10px; /* Space between images */
-    justify-content: center; /* Center the grid horizontally */
-    align-items: center; /* Align items vertically */
-    max-width: 100%; /* Make it responsive */
-}
-
-.file-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center content inside */
-    justify-content: center; /* Center content */
-    text-align: center; /* Ensure text aligns properly */
-    width: 100%;
-    max-width: 200px; /* Prevent images from stretching */
-}
-
-.file-preview img {
-    width: 150px;  /* Smaller width for better fit */
-    height: auto;  /* Maintain aspect ratio */
-    max-height: 150px; /* Limit height */
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    display: block; /* Prevent extra space issues */
-}
-
 .file-preview {
     display: flex;
     overflow-x: auto;
@@ -444,7 +370,7 @@ input[type="file"] {
     -moz-appearance: none;
     width: 26px;
     height: 26px;
-    position: relative;
+    position: absolute;
     top: 5px;
     right: 5px;
     z-index: 10;
@@ -457,7 +383,7 @@ input[type="file"] {
 
 /* Custom trash can icon */
 .file-checkbox::before {
-    content: ""; /* Unicode for Trash Can 🗑 */
+    content: "\1F5D1"; /* Unicode for Trash Can 🗑 */
     font-family: "Arial", sans-serif;
     font-size: 18px;
     color: red;
@@ -507,19 +433,27 @@ input[type="file"] {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(255, 0, 0, 0.7);
+    font-size: 14px;
+    font-weight: bold;
     color: white;
-    padding: 5px;
+    background: rgba(255, 0, 0, 0.7);
+    padding: 5px 10px;
     border-radius: 5px;
-    display: none; /* Hide by default */
-    pointer-events: none; /* Ensure clicks go through */
+    display: none;
 }
-
 
 /* Show Overlay when Checked */
 .file-wrapper.checked .marked-for-deletion {
     display: block;
 }
+
+
+
+
+
+
+
+
 
 /* ============================= */
 /* Buttons */
@@ -577,26 +511,6 @@ button:hover {
     #subcontractor-payment {
         font-size: 18px;
         padding: 16px;
-        width: 150px;
-    }
-
-    #job-name {
-        font-size: 25px; /* Reduce font size */
-        max-width: 100%; /* Allow full width on small screens */
-    }
-
-    input#address {
-        cursor: pointer;
-        background-color: #f8f9fa;
-        border: 2px solid #ccc;
-        border-radius: 8px;
-        text-align: center;
-        font-size: 16px;
-        padding: 12px;
-        max-width: 400px;
-        outline: none;
-        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-        transition: background-color 0.2s ease-in-out;
     }
 
     .form-group {
@@ -604,15 +518,6 @@ button:hover {
         flex-direction: column;
         gap: 10px; /* Adds spacing between form elements */
         margin-bottom: 20px;
-    }
-
-    .flex-container {
-        justify-content: center; /* Center items on smaller screens */
-        gap: 15px; /* Increase spacing for better visibility */
-    }
-
-    .flex-container input {
-        min-width: 100%; /* Ensures inputs don't shrink too much */
     }
 
     /* Special Styling for DOW and Materials Needed */
@@ -624,36 +529,6 @@ button:hover {
     select {
         height: 44px;
     }
-
-    .file-container {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr); /* Two equal columns */
-        gap: 10px; /* Space between images */
-        justify-content: center; /* Center the grid horizontally */
-        align-items: center; /* Align items vertically */
-        max-width: 100%; /* Make it responsive */
-    }
-    
-    .file-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: center; /* Center content inside */
-        justify-content: center; /* Center content */
-        text-align: center; /* Ensure text aligns properly */
-        width: 100%;
-        max-width: 600px; /* Prevent images from stretching */
-    }
-    
-    .file-preview img {
-        width: 150px;  /* Smaller width for better fit */
-        height: auto;  /* Maintain aspect ratio */
-        max-height: 150px; /* Limit height */
-        border-radius: 5px;
-        border: 1px solid #ddd;
-        display: block; /* Prevent extra space issues */
-    }
-    
-    
 
     /* Improve checkbox alignment */
     .form-group input[type="checkbox"] {

@@ -62,40 +62,6 @@ function openMapApp() {
 document.addEventListener("DOMContentLoaded", async function () {
     console.log("🚀 Page Loaded: JavaScript execution started!");
 
-    // ✅ Track if the initial "Job details loaded" toast was shown
-    let jobDetailsToastShown = false;
-
-    function showToast(message, type = "success", duration = 3000) {
-        console.log(`🔔 Toast Triggered: ${message}`); // ✅ Log when toast is shown
-
-        let toast = document.getElementById("toast-message");
-
-        // Create toast element if it doesn’t exist
-        if (!toast) {
-            toast = document.createElement("div");
-            toast.id = "toast-message";
-            toast.className = "toast-container";
-            document.body.appendChild(toast);
-        }
-
-        toast.textContent = message;
-        toast.classList.add("show");
-
-        // Add different styles for error and success
-        toast.style.background = type === "error" ? "rgba(200, 0, 0, 0.85)" : "rgba(0, 128, 0, 0.85)";
-
-        // Hide toast after specified duration
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, duration);
-    }
-
-    // ✅ Show toast for job details loaded only if it hasn't been shown
-    if (!jobDetailsToastShown) {
-        showToast("✅ Job details loaded successfully!");
-        jobDetailsToastShown = true;
-    }
-
     // ✅ Extract URL Parameters
     const params = new URLSearchParams(window.location.search);
     let recordId = params.get("id");
@@ -133,10 +99,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         const primaryData = await fetchAirtableRecord(airtableTableName, recordId);
         console.log("📋 Primary Data Fetched:", primaryData);
 
-        if (!primaryData || !primaryData.fields) {
-            throw new Error("Primary job data is missing!");
-        }
-
         // ✅ Extract Lot Name
         let lotName = primaryData.fields["Lot Number and Community/Neighborhood"];
         console.log("🏠 Extracted Lot Name:", lotName);
@@ -159,13 +121,51 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // ✅ Load images using Lot Name
         await loadImagesForLot(lotName, primaryData.fields["Status"]);
-        
+
+        /** ✅ Add Event Listener for Deleting Images **/
+        const deleteBtn = document.getElementById("delete-images-btn");
+
+        if (!deleteBtn) {
+            console.error("❌ ERROR: 'delete-images-btn' not found in DOM.");
+        } else {
+            console.log("✅ Delete button found in DOM!");
+            deleteBtn.addEventListener("click", async function () {
+                console.log("🗑️ Delete button clicked!");
+
+                if (!lotName) {
+                    console.error("❌ ERROR: Lot Name is missing when deleting images.");
+                    alert("Error: Lot Name not found.");
+                    return;
+                }
+
+                console.log("🗑️ Deleting images for Lot Name:", lotName);
+
+                const checkboxes = document.querySelectorAll(".image-checkbox:checked");
+
+                if (checkboxes.length === 0) {
+                    alert("⚠️ Please select at least one image to delete.");
+                    console.log("⚠️ No images selected.");
+                    return;
+                }
+
+                console.log("📌 Selected Images for Deletion:", checkboxes.length);
+
+                const imageIndexes = Array.from(checkboxes).map(cb => {
+                    const index = parseInt(cb.dataset.index);
+                    return isNaN(index) ? null : index;
+                }).filter(index => index !== null);
+                
+                console.log("📌 Image Indexes to Delete:", imageIndexes);
+
+                // Delete images by Lot Name
+                await deleteImagesByLotName(lotName, imageIndexes, "Completed  Pictures");
+
+                console.log("✅ Image deletion process completed.");
+            });
+        }
     } catch (error) {
         console.error("❌ Error loading job details:", error);
-        showToast("❌ Error loading job details!", "error");
     }
-
-
 
     // ✅ Handle Dropbox Image Upload
     document.getElementById("upload-issue-picture").addEventListener("change", async function (event) {
@@ -493,16 +493,10 @@ async function displayImages(files, containerId) {
         wrapperDiv.style.width = "200px";
 
         // Checkbox for selecting files to delete
-const checkbox = document.createElement("input");
-checkbox.type = "checkbox";
-checkbox.classList.add("file-checkbox", "image-checkbox");
-checkbox.dataset.imageId = file.id || "";
-checkbox.style.position = "absolute";
-checkbox.style.top = "5px";
-checkbox.style.left = "5px";
-checkbox.style.zIndex = "10"; // Ensure it stays clickable
-
-
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.classList.add("file-checkbox", "image-checkbox");
+        checkbox.dataset.imageId = file.id || "";
 
         // Overlay text for "Marked for Deletion"
         const overlay = document.createElement("div");
@@ -595,14 +589,6 @@ checkbox.style.zIndex = "10"; // Ensure it stays clickable
 
     console.log(`✅ Files displayed for ${containerId}`);
 }
-
-document.addEventListener("input", function (event) {
-    if (event.target.id === "description") {
-        event.target.style.height = "auto"; // Reset height
-        event.target.style.height = Math.min(event.target.scrollHeight, 150) + "px"; // Adjust height but limit to 250px
-    }
-});
-
     
 document.getElementById("delete-images-btn").addEventListener("click", async function (event) {
     event.preventDefault(); // ✅ Prevents page refresh
@@ -810,21 +796,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("save-job").addEventListener("click", async function () {
         console.log("🔄 Save button clicked. Collecting all field values...");
-
+    
         let lotName = document.getElementById("job-name")?.value?.trim();
         if (!lotName) {
             console.error("❌ Lot Name is missing. Cannot update Airtable.");
             showToast("❌ Error: Lot Name missing.", "error");
             return;
         }
-
+    
         const updatedFields = {};
         const inputs = document.querySelectorAll("input:not([disabled]), textarea:not([disabled]), select:not([disabled])");
-
+    
         inputs.forEach(input => {
             let fieldName = input.getAttribute("data-field");
             if (fieldName) {
                 let value;
+    
                 if (input.type === "checkbox") {
                     value = input.checked;
                 } else if (input.tagName === "SELECT") {
@@ -837,28 +824,25 @@ document.addEventListener("DOMContentLoaded", () => {
                     value = input.value.trim();
                     if (value === "") return;
                 }
+    
                 updatedFields[fieldName] = value;
             }
         });
-
+    
         console.log("📌 Final Fields to be Updated:", JSON.stringify(updatedFields, null, 2));
-
+    
         if (Object.keys(updatedFields).length === 0) {
             console.warn("⚠️ No valid fields found to update.");
             alert("No changes detected.");
             return;
         }
-
+    
         // ✅ Call updateAirtableRecord with lotName
         try {
             await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, updatedFields);
             console.log("✅ Airtable record updated successfully.");
-            
-            // ✅ Only show "Changes saved" toast if "Job details loaded" is NOT active
-            if (!jobDetailsToastShown) {
-                showToast("✅ Changes saved successfully!", "success", 5000);
-            }
-
+            alert("Job details saved successfully!");
+    
             // 🔹 Fetch Updated Data and Refresh UI
             setTimeout(async () => {
                 const updatedData = await fetchAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName);
@@ -870,15 +854,11 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Error saving job details. Please try again.");
         }
     });
-
     
-    
-
     function showToast(message, type = "success") {
-        console.log(`🔔 Toast Triggered: ${message}`); // ✅ Log when toast is shown
-    
         let toast = document.getElementById("toast-message");
     
+        // Create toast element if it doesn’t exist
         if (!toast) {
             toast = document.createElement("div");
             toast.id = "toast-message";
@@ -897,8 +877,6 @@ document.addEventListener("DOMContentLoaded", () => {
             toast.classList.remove("show");
         }, 3000);
     }
-    
-
     
     
     // Call this function when saving job details
