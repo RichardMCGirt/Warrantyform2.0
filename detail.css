@@ -12,10 +12,12 @@ body {
 }
 
 /* Toast Notification Styles */
+/* Toast Notification Styles */
 .toast-container {
-    bottom: 20px;
+    position: fixed;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 12px 20px;
@@ -24,7 +26,9 @@ body {
     text-align: center;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
+    z-index: 1000; /* Ensure it's above other elements */
 }
+
 
 .toast-container.show {
     opacity: 1;
