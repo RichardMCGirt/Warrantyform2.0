@@ -1071,7 +1071,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
         console.log(`📂 Uploading ${files.length} file(s) to Dropbox for field: ${targetField}`);
     
-        // ✅ Ensure lotName is properly retrieved
         let lotName = document.getElementById("job-name")?.value;
         if (!lotName) {
             console.error("❌ ERROR: Lot Name is missing. Cannot upload files.");
@@ -1079,9 +1078,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
     
-        // ✅ Fetch existing images from Airtable before updating
         let existingImages = await fetchCurrentImagesFromAirtable(lotName, targetField) || [];
-        const uploadedUrls = [...existingImages]; // Preserve existing images
+        const uploadedUrls = [...existingImages];
     
         for (const file of files) {
             try {
@@ -1099,10 +1097,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (uploadedUrls.length > 0) {
             await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, { [targetField]: uploadedUrls });
     
-            // ✅ Refresh UI after upload
-            displayImages(uploadedUrls, targetField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
+            // ✅ Refresh only the images after upload
+            await loadImagesForLot(lotName, document.getElementById("field-status")?.value);
         }
     }
+    
     
     // 🔹 Upload File to Dropbox
     async function uploadFileToDropbox(file) {
