@@ -24,22 +24,8 @@
 
             <label>Address:</label>
             <div style="display: flex; align-items: center; justify-content: left; gap: 10px;">
-                <input type="text" id="address" readonly 
-                    style="
-                        cursor: pointer; 
-                        background-color: #f8f9fa; 
-                        border: 2px solid #007BFF; 
-                        border-radius: 10px; 
-                        font-size: 18px; 
-                        text-align: center; 
-                        padding: 14px; 
-                        width: 100%; 
-                        max-width: 600px; 
-                        outline: none;
-                        font-weight: bold;
-                        color: #333;
-                        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-                        transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;"
+                <input type="text" id="address"
+                   
                     onclick="openMapApp()"
                     onmouseover="this.style.backgroundColor='#e0f2ff'; this.style.boxShadow='0px 4px 12px rgba(0, 123, 255, 0.3)'; this.style.transform='scale(1.02)';"
                     onmouseout="this.style.backgroundColor='#f8f9fa'; this.style.boxShadow='0px 4px 8px rgba(0, 0, 0, 0.1)'; this.style.transform='scale(1)';"
@@ -48,11 +34,15 @@
             <label>Homeowner Name:</label>
             <input type="text" id="homeowner-name" disabled>
 
-            <label>Contact Email:</label>
-<input type="email" id="contact-email" data-field="Contact Email" disabled>
+         <!--   <label>Contact Email:</label> -->
+            <input type="email" id="contact-email" data-field="Contact Email" disabled style="display: none;">
+            
 
-<label>Description:</label>
-<textarea id="description" data-field="Description of Issue" disabled></textarea>
+
+
+            <label for="description">Description of Issue:</label>
+            <textarea id="description" data-field="Description of Issue" disabled style="display: block;"></textarea>
+            
 
 
 <label>DOW to be Completed:</label>
@@ -118,10 +108,10 @@
         <label for="upload-issue-picture">Upload Issue Pictures</label>
         <input type="file" id="upload-issue-picture" class="custom-file-input" multiple accept="image/*">
     </div>
-    <div id="issue-pictures" class="file-preview"></div>
+    <div id="issue-pictures" class="file-container"></div>
 
     <!-- Preview area for uploaded images -->
-    <div id="file-preview" class="file-preview"></div>
+    <div id="file-preview" class="file-container"></div>
 
 <div class="form-group">
     <label>Field Tech Reviewed:</label>
@@ -137,7 +127,7 @@
 
 <!-- Preview area for uploaded images -->
 <h3 id="completed-pictures-heading">Completed Pictures:</h3>
-<div id="completed-pictures" class="file-preview"></div>
+<div id="completed-pictures" class="file-container"></div>
 
 
 <label id="job-completed-label">Job Completed:</label>
