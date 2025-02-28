@@ -8,11 +8,11 @@ body {
     background-color: #f4f4f4;
     color: #333;
     padding-bottom: 80px; /* Add space at the bottom to prevent content from being blocked */
+    
 }
 
 /* Toast Notification Styles */
 .toast-container {
-    position: fixed;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
@@ -22,7 +22,6 @@ body {
     border-radius: 8px;
     font-size: 16px;
     text-align: center;
-    z-index: 9999;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
 }
@@ -33,10 +32,10 @@ body {
 
 #save-job {
     position: fixed;
-    bottom: 20px; /* Distance from bottom */
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #007bff; /* Primary color */
+    background-color: #007bff;
     color: white;
     padding: 12px 24px;
     font-size: 16px;
@@ -44,11 +43,13 @@ body {
     border-radius: 8px;
     cursor: pointer;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1000; /* Ensures it's above other elements */
-    width: 90%; /* Responsive width */
-    max-width: 500px; /* Limit width for larger screens */
+    z-index: 9999 !important;
+    width: 90%;
+    max-width: 500px;
     text-align: center;
+    pointer-events: auto !important;
 }
+
 
 /* Hover effect */
 #save-job:hover {

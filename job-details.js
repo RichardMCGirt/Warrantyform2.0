@@ -212,88 +212,113 @@ document.addEventListener("DOMContentLoaded", async function () {
     
         console.log("📌 Airtable Response Data:", data);
     
-        if (data.fields && data.fields["Completed  Pictures"]) {
-            console.log("✅ Completed  Pictures:", data.fields["Completed  Pictures"]);
+        if (data.fields && data.fields["Completed Pictures"]) {
+            console.log("✅ Completed Pictures:", data.fields["Completed Pictures"]);
         } else {
-            console.warn("⚠️ 'Completed  Pictures' field is missing or empty.");
+            console.warn("⚠️ 'Completed Pictures' field is missing or empty. Initializing as empty array.");
+            data.fields["Completed  Pictures"] = []; // Prevents undefined errors
         }
+        
     
         return data;
     }
     
-    async function getRecordIdByAddress(address) {
-        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}?filterByFormula=${encodeURIComponent(`{Lot Number and Community/Neighborhood} = "${address}"`)}`;
+    async function getRecordIdByAddress(lotName) {
+        if (!lotName) {
+            console.error("❌ Lot Name is missing. Cannot fetch record ID.");
+            return null;
+        }
+    
+        console.log(`🔍 Searching for Record ID with Lot Name: "${lotName}"`);
+    
+        const filterFormula = `AND({Lot Number and Community/Neighborhood}="${lotName}")`;
+        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}?filterByFormula=${encodeURIComponent(filterFormula)}`;
+    
+        console.log("🔗 Airtable API URL:", url);
     
         try {
-            console.log("🔍 Searching for Record ID using Address:", address);
             const response = await fetch(url, {
                 headers: { Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}` }
             });
     
             const data = await response.json();
+    
+            if (!response.ok) {
+                console.error(`❌ Error fetching record ID: ${response.status} ${response.statusText}`);
+                return null;
+            }
+    
             if (data.records.length === 0) {
-                console.warn("⚠️ No matching record found for address:", address);
+                console.warn(`⚠️ No matching record found for Lot Name: "${lotName}"`);
                 return null;
             }
     
             console.log("✅ Found Record ID:", data.records[0].id);
             return data.records[0].id;
         } catch (error) {
-            console.error("❌ Error fetching record ID by address:", error);
+            console.error("❌ Error fetching record ID by Lot Name:", error);
             return null;
         }
     }
     
     
-
-async function updateAirtableRecord(tableName, address, fields) {
-   
     
-    try {
-        const recordId = await getRecordIdByAddress(address);
-        if (!recordId) {
-            console.error("❌ No record ID found for this address. Cannot update Airtable.");
-            showToast("❌ Error: No record found for this address.", "error");
-            return;
+    
+
+    async function updateAirtableRecord(tableName, lotName, fields) {
+        const saveButton = document.getElementById("save-job");
+    
+        if (saveButton) {
+            saveButton.disabled = false;
         }
-
-        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${tableName}/${recordId}`;
-
-        console.log("📡 Sending API Request to Airtable:", url);
-        console.log("📋 Fields Being Sent:", JSON.stringify(fields, null, 2));
-
-        const response = await fetch(url, {
-            method: "PATCH",
-            headers: {
-                Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ fields })
-        });
-
-        const result = await response.json();
-        console.log("📩 Airtable Response:", JSON.stringify(result, null, 2));
-
-        if (!response.ok) {
-            console.error(`❌ Airtable Error: ${response.status} ${response.statusText}`);
-            showToast(`❌ Error ${response.status}: ${response.statusText}`, "error");
-            isUpdating = false; // 🔹 Reset lock
-            return;
+    
+        try {
+            const recordId = await getRecordIdByAddress(lotName); // Ensure lotName is passed
+            if (!recordId) {
+                console.error("❌ No record ID found for this Lot Name. Cannot update Airtable.");
+                showToast("❌ Error: No record found for this Lot Name.", "error");
+    
+                if (saveButton) saveButton.disabled = false;
+                return;
+            }
+    
+            const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${tableName}/${recordId}`;
+    
+            console.log("📡 Sending API Request to Airtable:", url);
+            console.log("📋 Fields Being Sent:", JSON.stringify(fields, null, 2));
+    
+            const response = await fetch(url, {
+                method: "PATCH",
+                headers: {
+                    Authorization: `Bearer ${window.env.AIRTABLE_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ fields })
+            });
+    
+            const result = await response.json();
+            console.log("📩 Airtable Response:", JSON.stringify(result, null, 2));
+    
+            if (!response.ok) {
+                console.error(`❌ Airtable Error: ${response.status} ${response.statusText}`);
+                showToast(`❌ Error ${response.status}: ${response.statusText}`, "error");
+    
+                if (saveButton) saveButton.disabled = false;
+                return;
+            }
+    
+            console.log("✅ Airtable record updated successfully:", fields);
+            showToast("✅ Changes saved successfully!", "success");
+    
+        } catch (error) {
+            console.error("❌ Error updating Airtable:", error);
+            showToast(`❌ Error saving job details: ${error.message}`, "error");
+        } finally {
+            if (saveButton) saveButton.disabled = false;
         }
-
-        console.log("✅ Airtable record updated successfully:", fields);
-        showToast("✅ Changes saved successfully!", "success");
-
-      
-        
-        
-
-    } catch (error) {
-        console.error("❌ Error updating Airtable:", error);
-        showToast(`❌ Error saving job details: ${error.message}`, "error");
-        isUpdating = false; // 🔹 Reset lock
     }
-}
+    
+    
 
     
 function toggleDeleteButton() {
@@ -773,32 +798,32 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("save-job").addEventListener("click", async function () {
         console.log("🔄 Save button clicked. Collecting all field values...");
     
+        let lotName = document.getElementById("job-name")?.value?.trim();
+        if (!lotName) {
+            console.error("❌ Lot Name is missing. Cannot update Airtable.");
+            showToast("❌ Error: Lot Name missing.", "error");
+            return;
+        }
+    
         const updatedFields = {};
         const inputs = document.querySelectorAll("input:not([disabled]), textarea:not([disabled]), select:not([disabled])");
     
         inputs.forEach(input => {
             let fieldName = input.getAttribute("data-field");
-    
             if (fieldName) {
                 let value;
     
                 if (input.type === "checkbox") {
-                    value = input.checked; // ✅ Store checkboxes as true/false
+                    value = input.checked;
                 } else if (input.tagName === "SELECT") {
                     value = input.value.trim();
                     if (value === "" || value === "undefined") return;
                 } else if (input.type === "number") {
                     value = input.value.trim();
-                    value = value === "" ? null : parseFloat(value); // ✅ Convert to number or null
+                    value = value === "" ? null : parseFloat(value);
                 } else {
                     value = input.value.trim();
                     if (value === "") return;
-                }
-    
-                // ✅ Ensure "Subcontractor Payment" is sent as a number
-                if (fieldName === "Subcontractor Payment") {
-                    value = parseFloat(value);
-                    if (isNaN(value)) value = null; // ✅ Prevent invalid values
                 }
     
                 updatedFields[fieldName] = value;
@@ -813,22 +838,26 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
     
+        // ✅ Call updateAirtableRecord with lotName
         try {
-            await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId, updatedFields);
+            await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, updatedFields);
             console.log("✅ Airtable record updated successfully.");
             alert("Job details saved successfully!");
     
-            // 🔹 **Fetch updated data and refresh checkboxes**
+            // 🔹 Fetch Updated Data and Refresh UI
             setTimeout(async () => {
-                const updatedData = await fetchAirtableRecord(window.env.AIRTABLE_TABLE_NAME, recordId);
+                const updatedData = await fetchAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName);
                 console.log("📩 Reloading checkboxes with updated Airtable data:", updatedData);
-                populatePrimaryFields(updatedData.fields);  // Reload UI with updated values
-            }, 1000); // Short delay to ensure Airtable has updated
+                populatePrimaryFields(updatedData.fields);
+            }, 1000); 
         } catch (error) {
             console.error("❌ Error updating Airtable:", error);
             alert("Error saving job details. Please try again.");
         }
     });
+    
+    
+    
     
     function showToast(message, type = "success") {
         let toast = document.getElementById("toast-message");
