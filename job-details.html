@@ -11,10 +11,9 @@
     <nav>
         <a href="index.html" class="back-button"> Back to Job List</a>
     </nav>
-
+    <div class="scrollable-content">
     <div class="job-details-container">
         <form id="job-form">
-
             <label for="field-status">Status</label>
             <input type="text" id="field-status" name="field-status" disabled>
 
@@ -45,13 +44,7 @@
                     onmouseover="this.style.backgroundColor='#e0f2ff'; this.style.boxShadow='0px 4px 12px rgba(0, 123, 255, 0.3)'; this.style.transform='scale(1.02)';"
                     onmouseout="this.style.backgroundColor='#f8f9fa'; this.style.boxShadow='0px 4px 8px rgba(0, 0, 0, 0.1)'; this.style.transform='scale(1)';"
                     placeholder="Click for Directions">
-                
-              
             </div>
-            
-            
-
-     
             <label>Homeowner Name:</label>
             <input type="text" id="homeowner-name" disabled>
 
@@ -67,14 +60,10 @@
           style="width: 100%; max-width: 100%; font-size: 16px; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; min-height: 50px; resize: vertical;"
           autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false"></textarea>
 
-
-
 <label id="subcontractor-dropdown1-label" for="subcontractor-dropdown1">Select a Subcontractor:</label>
 <select id="subcontractor-dropdown" data-field="Subcontractor">
     <option value="">Select a Subcontractor...</option>
 </select>
-
-
 
 <div id="additional-fields-container">
     <div class="form-group">
@@ -83,9 +72,7 @@
             <option value="Billable">Billable</option>
             <option value="Non Billable">Non Billable</option>
         </select>
-        
     </div>
-
     <div class="form-group">
         <label for="homeowner-builder">Homeowner Builder Pay</label>
 <select id="homeowner-builder" name="homeowner-builder" data-field="Homeowner Builder pay">
@@ -93,9 +80,7 @@
     <option value="Subcontractor">Subcontractor</option>
     <option value="Builder">Builder</option>
 </select>
-
-    </div>
-
+</div>
     <div class="form-group">
         <label for="billable-reason">Billable Reason (If Billable)</label>
         <select id="billable-reason" name="billable-reason" data-field="Billable Reason (If Billable)">
@@ -105,10 +90,7 @@
             <option value="Weather">Weather</option>
         </select>
     </div>
-
     <div id="message-container"></div>
-
-
     <div class="form-group" style="display: none;">
         <label>Field Review Not Needed:</label>
         <input type="checkbox" id="field-review-needed" data-field="Field Review Not Needed">
@@ -119,16 +101,11 @@
         <input type="checkbox" id="field-review-not-needed" data-field="Field Review Needed">
     </div>
     
-
-
-
     <div class="form-group">
         <label for="subcontractor-payment">Subcontractor Payment</label>
         <input type="number" id="subcontractor-payment" name="subcontractor-payment" step="0.01" min="0" placeholder="$0.00" data-field="Subcontractor Payment">
     </div>
     
-    
-
     <div class="form-group">
         <label for="materials-needed">Materials Needed</label>
         <textarea id="materials-needed" name="materials-needed" data-field="Materials Needed"
@@ -137,8 +114,6 @@
                min-height: 100px; resize: vertical;"
         autocomplete="off" autocorrect="on" autocapitalize="sentences" spellcheck="true"></textarea>
         </div>
-
-
     <div class="file-input-container">
         <label for="upload-issue-picture">Upload Issue Pictures</label>
         <input type="file" id="upload-issue-picture" class="custom-file-input" multiple accept="image/*">
@@ -147,8 +122,6 @@
 
     <!-- Preview area for uploaded images -->
     <div id="file-preview" class="file-preview"></div>
-    
-
 
 <div class="form-group">
     <label>Field Tech Reviewed:</label>
@@ -162,7 +135,6 @@
     <input type="file" id="upload-completed-picture" multiple accept="image/*">
 </div>
 
-
 <!-- Preview area for uploaded images -->
 <h3 id="completed-pictures-heading">Completed Pictures:</h3>
 <div id="completed-pictures" class="file-preview"></div>
@@ -175,6 +147,7 @@
     style="background:red; color:white; padding:10px; border:none; cursor:pointer;">
     Delete Selected Images
 </button> 
+</div>
 
 <button type="button" id="save-job">Save Changes</button>
 

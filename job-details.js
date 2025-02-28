@@ -1,4 +1,3 @@
-
 function openMapApp() {
     const addressInput = document.getElementById("address");
 
@@ -59,7 +58,6 @@ function openMapApp() {
         document.body.removeChild(modal);
     });
 }
-
 
 document.addEventListener("DOMContentLoaded", async function () {
     console.log("🚀 Page Loaded: JavaScript execution started!");
@@ -175,19 +173,14 @@ document.addEventListener("DOMContentLoaded", async function () {
        
         // Upload to Dropbox
         await uploadToDropbox(files, "Picture(s) of Issue");
-    
-    
     });
     
 
     document.getElementById("upload-completed-picture").addEventListener("change", async function (event) {
         const files = event.target.files;
         
-    
         // Upload to Dropbox
         await uploadToDropbox(files, "Completed  Pictures");
-    
-       
     });
     
 
@@ -241,11 +234,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             return null;
         }
     }
-    
-    
-    
-    
-    
+
     async function getRecordIdByLotName(lotName) {
         if (!lotName) {
             console.error("❌ Lot Name is missing. Cannot fetch record ID.");
@@ -291,14 +280,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
     
-        
-    
-    
-    
-    
-    
-    
-
     async function updateAirtableRecord(tableName, lotNameOrRecordId, fields) {
         console.log("📡 Updating Airtable record for:", lotNameOrRecordId);
     
@@ -353,11 +334,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
     
-        
-    
-    
-
-    
 function toggleDeleteButton() {
     const deleteButton = document.getElementById("delete-images-btn");
     const images = document.querySelectorAll(".image-container img"); // Change selector based on your structure
@@ -397,10 +373,6 @@ document.addEventListener("DOMContentLoaded", toggleDeleteButton);
             window.location.href = url.toString();
         });
     });
-    
-    
-    
-    
     
 // 🔹 Populate Primary Fields
 async function populatePrimaryFields(job) { // ✅ Make function async
@@ -469,8 +441,6 @@ async function populatePrimaryFields(job) { // ✅ Make function async
 
     showElement("save-job"); 
 }
-
-
 
 // Function to hide an element safely
 function hideElementById(elementId) {
@@ -619,12 +589,6 @@ async function displayImages(files, containerId) {
 
     console.log(`✅ Files displayed for ${containerId}`);
 }
-
-
-
-
-
-
     
 document.getElementById("delete-images-btn").addEventListener("click", async function (event) {
     event.preventDefault(); // ✅ Prevents page refresh
@@ -702,7 +666,6 @@ async function deleteImagesByLotName(lotName, imageIdsToDelete, imageField) {
     }
 }
 
-
 async function fetchImagesByLotName(lotName, imageField) {
     console.log("📡 Fetching images for Lot Name:", lotName);
 
@@ -766,7 +729,6 @@ async function loadImagesForLot(lotName, status) {
 
     displayImages(images, imageField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
 }
-
 
     async function testFetchImages() {
         try {
@@ -892,9 +854,6 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Error saving job details. Please try again.");
         }
     });
-    
-    
-    
     
     function showToast(message, type = "success") {
         let toast = document.getElementById("toast-message");
@@ -1153,7 +1112,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         return null;
                     }
                 }
-    
                 return null;
             }
     
