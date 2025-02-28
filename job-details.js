@@ -429,9 +429,6 @@ function showElement(elementId) {
     }
 }
 
- 
-
-
 async function displayImages(files, containerId) {
     const container = document.getElementById(containerId);
     if (!container) {
@@ -447,7 +444,7 @@ async function displayImages(files, containerId) {
         return;
     }
 
-    console.log(`✅ Displaying files for ${containerId}:`, files); // Log files array
+    console.log(`✅ Displaying files for ${containerId}:`, files);
 
     for (const file of files) {
         if (!file.url) {
@@ -464,41 +461,43 @@ async function displayImages(files, containerId) {
         wrapperDiv.style.width = "200px";
 
         // Checkbox for selecting files to delete
-const checkbox = document.createElement("input");
-checkbox.type = "checkbox";
-checkbox.classList.add("file-checkbox", "image-checkbox"); // Added "image-checkbox" class for easy selection
-checkbox.dataset.imageId = file.id || ""; // ✅ Ensure the image ID is stored in dataset
-checkbox.style.position = "absolute";
-checkbox.style.top = "5px";
-checkbox.style.right = "5px";
-checkbox.style.zIndex = "10";
-checkbox.style.width = "18px";
-checkbox.style.height = "18px";
-checkbox.style.cursor = "pointer";
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.classList.add("file-checkbox", "image-checkbox");
+        checkbox.dataset.imageId = file.id || "";
 
+        // Overlay text for "Marked for Deletion"
+        const overlay = document.createElement("div");
+        overlay.classList.add("marked-for-deletion");
+        overlay.innerText = "Marked for Deletion";
+
+        // Handle checkbox state changes
+        checkbox.addEventListener("change", function () {
+            if (this.checked) {
+                wrapperDiv.classList.add("checked");
+            } else {
+                wrapperDiv.classList.remove("checked");
+            }
+        });
 
         // Filename label
         const fileLabel = document.createElement("p");
         fileLabel.innerText = file.filename || "Unknown File";
         fileLabel.style.fontSize = "12px";
         fileLabel.style.marginTop = "5px";
-        fileLabel.style.wordBreak = "break-word"; // Ensure long filenames wrap properly
+        fileLabel.style.wordBreak = "break-word"; 
 
         let previewElement;
 
-        // ✅ Ensure `file.type` exists before checking its value
         if (file.type && file.type === "application/pdf") {
-            // **Render PDF Preview Using PDF.js**
             previewElement = document.createElement("canvas");
             previewElement.style.width = "100%";
             previewElement.style.border = "1px solid #ddd";
             previewElement.style.borderRadius = "5px";
             previewElement.style.cursor = "pointer";
 
-            // Open PDF on click
             previewElement.addEventListener("click", () => window.open(file.url, "_blank"));
 
-            // Render PDF Preview
             try {
                 const pdf = await pdfjsLib.getDocument(file.url).promise;
                 const page = await pdf.getPage(1);
@@ -522,7 +521,6 @@ checkbox.style.cursor = "pointer";
                 previewElement.style.border = "1px solid #ddd";
             }
         } else if (file.type && typeof file.type === "string" && file.type.startsWith("image/")) {
-            // **Render Image Preview**
             previewElement = document.createElement("img");
             previewElement.src = file.url;
             previewElement.setAttribute("data-file-id", file.id || "");
@@ -532,10 +530,8 @@ checkbox.style.cursor = "pointer";
             previewElement.style.border = "1px solid #ddd";
             previewElement.style.cursor = "pointer";
 
-            // Open image on click
             previewElement.addEventListener("click", () => window.open(file.url, "_blank"));
         } else {
-            // **Other File Types (Download Link)**
             previewElement = document.createElement("a");
             previewElement.href = file.url;
             previewElement.innerText = "Download File";
@@ -549,18 +545,22 @@ checkbox.style.cursor = "pointer";
 
         // Append elements
         wrapperDiv.appendChild(checkbox);
+        wrapperDiv.appendChild(overlay);
         wrapperDiv.appendChild(previewElement);
         wrapperDiv.appendChild(fileLabel);
         container.appendChild(wrapperDiv);
     }
 
-    // ✅ Force reflow and repaint (fixes images not appearing initially)
     container.style.display = "none";
-    container.offsetHeight; // Force reflow
+    container.offsetHeight;
     container.style.display = "block";
 
     console.log(`✅ Files displayed for ${containerId}`);
 }
+
+
+
+
 
 
     

@@ -347,26 +347,26 @@ input[type="file"] {
 
 /* Hide the default checkbox */
 .file-checkbox {
-    appearance: none; /* Remove default styling */
-    -webkit-appearance: none; /* Safari fix */
+    appearance: none;
+    -webkit-appearance: none;
     -moz-appearance: none;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     position: absolute;
     top: 5px;
     right: 5px;
     z-index: 10;
     cursor: pointer;
-    background:  darkred;
     border: none;
     border-radius: 50%;
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
-    text-align: center;
+    background: rgba(255, 0, 0, 0.1);
+    transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
 
 /* Custom trash can icon */
 .file-checkbox::before {
-    content: "🗑️"; /* Unicode Trash Can */
+    content: "\1F5D1"; /* Unicode for Trash Can 🗑 */
+    font-family: "Arial", sans-serif;
     font-size: 18px;
     color: red;
     display: flex;
@@ -375,13 +375,63 @@ input[type="file"] {
     width: 100%;
     height: 100%;
     border-radius: 50%;
+    transition: color 0.3s ease-in-out;
+}
+
+/* Checked state - Change Background and Icon */
+.file-checkbox:checked {
+    background: red;
+    transform: scale(1.1);
+}
+
+.file-checkbox:checked::before {
+    color: white;
 }
 
 /* Hover effect */
+.file-checkbox:hover {
+    background: rgba(255, 0, 0, 0.7);
+    transform: scale(1.2);
+}
+
 .file-checkbox:hover::before {
-    background: red;
     color: white;
 }
+
+/* ✨ Highlight Checked File - Show Red Border and Dim Background */
+.file-wrapper.checked {
+    background: rgba(255, 0, 0, 0.1);
+    border: 2px solid red;
+    border-radius: 10px;
+    padding: 5px;
+    opacity: 0.7;
+    position: relative;
+    transition: opacity 0.3s ease-in-out, border 0.3s ease-in-out;
+}
+
+/* "Marked for Deletion" Overlay */
+.marked-for-deletion {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    background: rgba(255, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: none;
+}
+
+/* Show Overlay when Checked */
+.file-wrapper.checked .marked-for-deletion {
+    display: block;
+}
+
+
+
+
 
 
 
