@@ -402,7 +402,6 @@ input[type="file"] {
 
 /* Checked state - Change Background and Icon */
 .file-checkbox:checked {
-    background: red;
     transform: scale(1.1);
 }
 

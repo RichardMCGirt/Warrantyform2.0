@@ -483,7 +483,7 @@ async function displayImages(files, containerId) {
             console.error("❌ Missing 'url' field in file object:", file);
             continue;
         }
-
+    
         const wrapperDiv = document.createElement("div");
         wrapperDiv.classList.add("file-wrapper");
         wrapperDiv.style.display = "inline-block";
@@ -491,13 +491,18 @@ async function displayImages(files, containerId) {
         wrapperDiv.style.position = "relative";
         wrapperDiv.style.textAlign = "center";
         wrapperDiv.style.width = "200px";
-
-        // Checkbox for selecting files to delete
+    
+        // ✅ Declare checkbox properly before using it
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.classList.add("file-checkbox", "image-checkbox");
         checkbox.dataset.imageId = file.id || "";
-
+    
+        // ✅ Add event listener inside the loop
+        checkbox.addEventListener("change", function () {
+            wrapperDiv.classList.toggle("checked", this.checked);
+        });
+    
         // Overlay text for "Marked for Deletion"
         const overlay = document.createElement("div");
         overlay.classList.add("marked-for-deletion");
@@ -590,13 +595,7 @@ async function displayImages(files, containerId) {
     console.log(`✅ Files displayed for ${containerId}`);
 }
    
-checkbox.addEventListener("change", function () {
-    wrapperDiv.classList.toggle("checked", this.checked);
-});
 
-checkbox.addEventListener("touchstart", function (event) {
-    event.stopPropagation(); // Prevent interference from other events
-});
 
 
 document.getElementById("delete-images-btn").addEventListener("click", async function (event) {
@@ -655,24 +654,22 @@ async function deleteImagesByLotName(lotName, imageIdsToDelete, imageField) {
     console.log(`📸 Current Images in '${imageField}' Before Deletion:`, existingImages);
 
     // Remove selected images
+    console.log("📌 Existing images before deletion:", existingImages);
     const updatedImages = existingImages.filter(img => !imageIdsToDelete.includes(img.id));
+    console.log("📌 Updated image list after deletion:", updatedImages);
+    
+    console.log(`🗑️ Deleting images from '${imageField}' for Lot Name: ${lotName}`);
 
-    console.log(`✅ Updated Images After Deletion from '${imageField}':`, updatedImages);
+try {
+    console.log(`📩 Sending updated image list to Airtable for '${imageField}':`, updatedImages);
+    await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, {
+        [imageField]: updatedImages.length > 0 ? updatedImages : []
+    });
+    console.log(`✅ Images deleted from '${imageField}'!`);
+} catch (error) {
+    console.error(`❌ Error deleting images from '${imageField}' in Airtable:`, error);
+}
 
-    try {
-        // Update Airtable with the new image list
-        await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, {
-            [imageField]: updatedImages.length > 0 ? updatedImages : []
-        });
-
-        console.log(`✅ Selected images deleted successfully from '${imageField}'!`);
-
-        // Refresh UI
-        displayImages(updatedImages, imageField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
-    } catch (error) {
-        console.error(`❌ Error deleting images from '${imageField}' in Airtable:`, error);
-        alert("Error deleting images. Please try again.");
-    }
 }
 
 async function fetchImagesByLotName(lotName, imageField) {
@@ -1066,8 +1063,9 @@ document.addEventListener("DOMContentLoaded", () => {
             await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, { [targetField]: uploadedUrls });
     
             // ✅ Refresh only the images after upload
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
             await loadImagesForLot(lotName, document.getElementById("field-status")?.value);
-        }
+                    }
     }
     
     
