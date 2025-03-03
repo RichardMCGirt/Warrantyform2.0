@@ -473,6 +473,9 @@ async function displayImages(files, containerId) {
     if (!files || files.length === 0) {
         console.warn(`⚠️ No files found in ${containerId}`);
         container.innerHTML = "<p>No files found.</p>";
+        
+        // ✅ Hide delete button if both are empty
+        checkAndHideDeleteButton();
         return;
     }
 
@@ -593,8 +596,23 @@ async function displayImages(files, containerId) {
     container.style.display = "block";
 
     console.log(`✅ Files displayed for ${containerId}`);
+    // ✅ Check if we need to show or hide delete button
+    checkAndHideDeleteButton();
 }
    
+function checkAndHideDeleteButton() {
+    const deleteButton = document.getElementById("delete-images-btn");
+    const issueImages = document.querySelectorAll("#issue-pictures .file-wrapper").length;
+    const completedImages = document.querySelectorAll("#completed-pictures .file-wrapper").length;
+
+    if (issueImages === 0 && completedImages === 0) {
+        console.log("🛑 No images found. Hiding delete button.");
+        deleteButton.style.display = "none";
+    } else {
+        console.log("✅ Images found. Showing delete button.");
+        deleteButton.style.display = "block";
+    }
+}
 
 
 

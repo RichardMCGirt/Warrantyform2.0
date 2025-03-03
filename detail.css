@@ -451,6 +451,21 @@ input[type="file"] {
 }
 
 
+/* Center label and checkbox horizontally */
+.job-completed-container {
+    display: flex;
+    justify-content: center; /* Center elements on the X-axis */
+    align-items: center; /* Align them properly */
+    gap: 10px; /* Space between label and checkbox */
+    margin-top: 10px;
+}
+
+/* Ensure checkbox is large enough to tap */
+#job-completed {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
 
 
 
