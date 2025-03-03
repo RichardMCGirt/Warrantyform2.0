@@ -315,8 +315,9 @@ input[type="file"] {
 /* ============================= */
 .file-preview {
     display: flex;
+    flex-wrap: wrap; /* Allows items to wrap within the container */
     overflow-x: auto;
-    white-space: nowrap;
+    white-space: normal; /* Ensures wrapping works */
     gap: 10px;
     padding: 10px;
     width: 100%;
@@ -325,6 +326,7 @@ input[type="file"] {
     scrollbar-width: none; /* Hides scrollbar for a cleaner look */
     -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
 }
+
 
 .file-preview::-webkit-scrollbar {
     display: none; /* Hides scrollbar in WebKit browsers */
