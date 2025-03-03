@@ -903,10 +903,7 @@ document.addEventListener("DOMContentLoaded", () => {
             toast.classList.remove("show");
         }, 3000);
     }
-    
-    
-    // Call this function when saving job details
-    
+     
     
     // 🔹 Fetch Dropbox Token from Airtable
     async function fetchDropboxToken() {
