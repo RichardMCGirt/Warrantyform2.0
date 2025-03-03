@@ -6,6 +6,8 @@ function openMapApp() {
         return;
     }
 
+    
+
     const address = encodeURIComponent(addressInput.value.trim());
     const userAgent = navigator.userAgent.toLowerCase();
 
@@ -112,60 +114,159 @@ document.addEventListener("DOMContentLoaded", async function () {
         // ✅ Populate UI with Primary Fields
         populatePrimaryFields(primaryData.fields);
 
-        // ✅ Fetch Dropbox Token
-        dropboxAccessToken = await fetchDropboxToken();
-
         // ✅ Fetch Subcontractors Based on `b` Value and Populate Dropdown
         console.log("✅ Fetching subcontractors based on branch `b`...");
         await fetchAndPopulateSubcontractors(recordId);
 
-        // ✅ Load images using Lot Name
-        await loadImagesForLot(lotName, primaryData.fields["Status"]);
+        /** ✅ Subcontractor Handling Logic **/
+        console.log("✅ Setting up subcontractor logic...");
 
-        /** ✅ Add Event Listener for Deleting Images **/
-        const deleteBtn = document.getElementById("delete-images-btn");
+        const subcontractorCheckbox = document.querySelector("#sub-not-needed");
+        const subcontractorDropdown = document.querySelector("#subcontractor-dropdown");
+        const saveButton = document.querySelector("#save-job");
 
-        if (!deleteBtn) {
-            console.error("❌ ERROR: 'delete-images-btn' not found in DOM.");
-        } else {
-            console.log("✅ Delete button found in DOM!");
-            deleteBtn.addEventListener("click", async function () {
-                console.log("🗑️ Delete button clicked!");
-
-                if (!lotName) {
-                    console.error("❌ ERROR: Lot Name is missing when deleting images.");
-                    alert("Error: Lot Name not found.");
-                    return;
-                }
-
-                console.log("🗑️ Deleting images for Lot Name:", lotName);
-
-                const checkboxes = document.querySelectorAll(".image-checkbox:checked");
-
-                if (checkboxes.length === 0) {
-                    alert("⚠️ Please select at least one image to delete.");
-                    console.log("⚠️ No images selected.");
-                    return;
-                }
-
-                console.log("📌 Selected Images for Deletion:", checkboxes.length);
-
-                const imageIndexes = Array.from(checkboxes).map(cb => {
-                    const index = parseInt(cb.dataset.index);
-                    return isNaN(index) ? null : index;
-                }).filter(index => index !== null);
-                
-                console.log("📌 Image Indexes to Delete:", imageIndexes);
-
-                // Delete images by Lot Name
-                await deleteImagesByLotName(lotName, imageIndexes, "Completed  Pictures");
-
-                console.log("✅ Image deletion process completed.");
-            });
+        if (!subcontractorCheckbox || !subcontractorDropdown || !saveButton) {
+            console.warn("⚠️ Subcontractor checkbox, dropdown, or save button not found in the DOM!");
+            return;
         }
+
+        console.log("✅ Found elements:", {
+            checkbox: subcontractorCheckbox,
+            dropdown: subcontractorDropdown,
+            saveButton: saveButton
+        });
+
+        // Function to handle checkbox toggle
+        function toggleSubcontractorField() {
+            console.log("📌 Checkbox State Changed:", subcontractorCheckbox.checked);
+
+            if (subcontractorCheckbox.checked) {
+                subcontractorDropdown.value = "Sub Not Needed";
+                subcontractorDropdown.setAttribute("readonly", "true");
+                subcontractorDropdown.style.pointerEvents = "none"; // Prevent clicks
+                subcontractorDropdown.style.background = "#e9ecef"; // Grey out to indicate read-only
+                console.log("🔒 Dropdown READ-ONLY & set to 'Sub Not Needed'");
+            } else {
+                subcontractorDropdown.value = "";
+                subcontractorDropdown.removeAttribute("readonly");
+                subcontractorDropdown.style.pointerEvents = "auto"; // Enable interaction
+                subcontractorDropdown.style.background = ""; // Reset background
+                console.log("✅ Dropdown ENABLED & value CLEARED");
+            }
+            
+        }
+
+        // Initialize subcontractor checkbox and dropdown state from job data
+        function setInputValue(fieldId, value) {
+            const inputElement = document.getElementById(fieldId);
+            if (inputElement) {
+                if (inputElement.type === "checkbox") {
+                    inputElement.checked = !!value;
+                } else {
+                    inputElement.value = value;
+                }
+            }
+        }
+
+        // Set initial checkbox state from job data
+        setInputValue("sub-not-needed", primaryData.fields["Subcontractor Not Needed"]);
+
+        // Apply subcontractor logic on load
+        toggleSubcontractorField();
+
+        // Event listener for subcontractor checkbox
+        subcontractorCheckbox.addEventListener("change", toggleSubcontractorField);
+        console.log("🎯 Subcontractor logic fully integrated!");
+
+        /** ✅ Add Event Listener for Save Button **/
+        saveButton.addEventListener("click", function () {
+            console.log("💾 Save button clicked!");
+        
+            let jobData = {
+                "DOW to be Completed": document.getElementById("dow-completed").value,
+                "Subcontractor Not Needed": subcontractorCheckbox.checked,
+                "Billable/ Non Billable": document.getElementById("billable-status").value,
+                "Homeowner Builder pay": document.getElementById("homeowner-builder").value,
+                "Billable Reason (If Billable)": document.getElementById("billable-reason").value,
+                "Field Review Not Needed": document.getElementById("field-review-needed").checked,
+                "Field Review Needed": document.getElementById("field-review-not-needed").checked,
+                "Subcontractor Payment": parseFloat(document.getElementById("subcontractor-payment").value) || 0,
+                "Materials Needed": document.getElementById("materials-needed").value,
+                "Field Tech Reviewed": document.getElementById("field-tech-reviewed").checked,
+                "Job Completed": document.getElementById("job-completed").checked,
+            };
+        
+            // ✅ **Ensure "Subcontractor" field is always included**
+            if (subcontractorCheckbox.checked) {
+                jobData["Subcontractor"] = "Sub Not Needed"; // If checkbox is checked
+            } else {
+                jobData["Subcontractor"] = subcontractorDropdown.value.trim() || ""; // Get the selected value
+            }
+        
+            console.log("🚀 Fields Being Sent:", jobData);
+        
+            // ✅ Call function to save job data
+            saveJobData(recordId, jobData);
+        });
+        
+    
+        // ✅ Apply subcontractor logic on load
+        toggleSubcontractorField();
+    
+        // ✅ Event listener for checkbox
+        subcontractorCheckbox.addEventListener("change", toggleSubcontractorField);
+        console.log("🎯 Subcontractor logic fully integrated!");
+    
+        // ✅ Fetch and Populate Subcontractor Dropdown
+        await fetchAndPopulateSubcontractors(recordId);
+        
     } catch (error) {
-        console.error("❌ Error loading job details:", error);
+        console.error("❌ Error occurred:", error);
     }
+    
+
+
+
+
+
+    function updateDeleteButtonLabel() {
+        const deleteButton = document.getElementById("delete-images-btn");
+        if (!deleteButton) {
+            console.warn("⚠️ Delete button not found in the DOM.");
+            return;
+        }
+    
+        const selectedImages = document.querySelectorAll(".image-checkbox:checked").length;
+        console.log(`🖼️ Selected Images: ${selectedImages}`);
+    
+        deleteButton.textContent = selectedImages === 1 ? "Delete Selected Image" : "Delete Selected Images";
+    
+        // Log if the button state is changing
+        if (selectedImages > 0) {
+            console.log("✅ Delete button is now visible.");
+            deleteButton.style.display = "block"; // Ensure the button is visible
+        } else {
+            console.log("🚫 No images selected. Hiding delete button.");
+            deleteButton.style.display = "none";
+        }
+    }
+
+    
+    
+    // 🔹 Listen for checkbox changes and update the button label accordingly
+    document.addEventListener("change", function (event) {
+        if (event.target.classList.contains("image-checkbox")) {
+            console.log(`📌 Checkbox changed: ${event.target.dataset.imageId} | Checked: ${event.target.checked}`);
+            updateDeleteButtonLabel();
+        }
+    });
+    
+    // 🔹 Initial check on page load to set correct delete button state
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("📢 Page Loaded - Checking Initial Delete Button State");
+        updateDeleteButtonLabel();
+    });
+    
 
     // ✅ Handle Dropbox Image Upload
     document.getElementById("upload-issue-picture").addEventListener("change", async function (event) {
@@ -314,14 +415,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                 },
                 body: JSON.stringify({ fields })
             });
-    
+            
             if (!response.ok) {
-                console.error(`❌ Airtable Error: ${response.status} ${response.statusText}`);
-                showToast(`❌ Error ${response.status}: ${response.statusText}`, "error");
-    
-                if (saveButton) saveButton.disabled = false;
+                const errorDetails = await response.json(); // Extract error response
+                console.error("❌ Airtable Error:", errorDetails);
                 return;
             }
+            
     
             console.log("✅ Airtable record updated successfully:", fields);
     
@@ -385,6 +485,8 @@ async function populatePrimaryFields(job) { // ✅ Make function async
     setInputValue("description", job["Description of Issue"]);
     setInputValue("dow-completed", job["DOW to be Completed"]); 
     setInputValue("field-status", job["Status"]);
+    setInputValue("sub-not-needed", job["Subcontractor Not Needed"]);
+
 
     console.log("✅ Images Loaded - Checking Status...");
 
@@ -420,6 +522,7 @@ async function populatePrimaryFields(job) { // ✅ Make function async
         setInputValue("subcontractor", job["Subcontractor"]);
         setInputValue("materials-needed", job["Materials Needed"]);
         setInputValue("subcontractor-payment", job["Subcontractor Payment"]); 
+        setCheckboxValue("sub-not-needed", job["Subcontractor Not Needed"]);
 
         setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
     }
@@ -431,8 +534,6 @@ async function populatePrimaryFields(job) { // ✅ Make function async
         console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
         hideElementById("completed-pictures");
         hideElementById("upload-completed-picture");
-        hideElementById("job-completed");
-        hideElementById("job-completed-label");
         hideElementById("completed-pictures-heading");
         hideElementById("upload-completed-picture"); 
         hideElementById("file-input-container"); 
@@ -1214,19 +1315,14 @@ document.addEventListener("DOMContentLoaded", () => {
     
             console.log(`📌 Found Branch 'b': ${branchB}`);
     
-            // 2️⃣ Fetch all subcontractors with offset handling
+            // 2️⃣ Fetch subcontractors based on the branch
             let allSubcontractors = await fetchAllSubcontractors(airtableBaseId, subcontractorTableId, branchB);
     
-            // 🔹 LOG TOTAL MATCHING SUBCONTRACTORS
-            console.log(`✅ Total Subcontractors Matching Branch '${branchB}':`, allSubcontractors.length);
-    
             // 3️⃣ Populate the dropdown
-            setTimeout(() => {
-                populateSubcontractorDropdown(allSubcontractors);
-            }, 500); // Waits 500ms to ensure records are fetched
-                
+            populateSubcontractorDropdown(allSubcontractors);
+    
         } catch (error) {
-            console.error("❌ Error:", error);
+            console.error("❌ Error fetching subcontractors:", error);
         }
     }
     
@@ -1312,7 +1408,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
     function populateSubcontractorDropdown(subcontractors) {
         console.log("📌 Populating the subcontractor dropdown...");
-        
+    
         const dropdown = document.getElementById("subcontractor-dropdown");
         if (!dropdown) {
             console.error("❌ Subcontractor dropdown element not found.");
@@ -1322,7 +1418,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Get current selected value (if any)
         const currentSelection = dropdown.getAttribute("data-selected") || dropdown.value;
     
-        dropdown.innerHTML = '<option value="">Select a Subcontractor...</option>'; // Reset dropdown
+        // Reset dropdown and add hardcoded "Subcontractor Not Needed" option
+        dropdown.innerHTML = `
+            <option value="">Select a Subcontractor...</option>
+            <option value="Sub Not Needed">Subcontractor Not Needed</option>
+        `;
     
         if (subcontractors.length === 0) {
             console.warn("⚠️ No matching subcontractors found.");
@@ -1346,7 +1446,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     
         // If current selection does not exist in new options, append it
-        if (currentSelection && !existingFound) {
+        if (currentSelection && !existingFound && currentSelection !== "Sub Not Needed") {
             console.log(`🔄 Adding previously selected subcontractor: ${currentSelection}`);
             const existingOption = document.createElement("option");
             existingOption.value = currentSelection;

@@ -11,36 +11,11 @@ Promise.all([
     console.error("An error occurred during one of the fetch operations:", error);
 });
 
-           
     const mainContent = document.getElementById('main-content');
     const secondaryContent = document.getElementById('secoundary-content');
    
 
-    async function fetchRecordsFromAirtable() {
-        const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}`;
-        try {
-            const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${airtableApiKey}` }
-            });
-    
-            if (!response.ok) {
-                throw new Error(`Error fetching records: ${response.status} ${response.statusText}`);
-            }
-    
-            const data = await response.json();
-            
-            // Log all fields for each record
-            data.records.forEach(record => {
-                console.log(`Record ID: ${record.id}`);
-                console.log(record.fields); // Log all fields for the record
-            });
-    
-            return data.records; // Return the records array
-        } catch (error) {
-            console.error('Error fetching records from Airtable:', error);
-            return [];
-        }
-    }
+
     
 document.addEventListener("DOMContentLoaded", function () {
     function hideColumnsExcept(tableId, columnIndex) {
@@ -76,9 +51,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 1000); // Adjust timeout based on data load speed
 });
 
-    
-    
-    
     async function fetchAirtableFields() {
         const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}?maxRecords=1`;
     
@@ -121,9 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return {}; // Return an empty object in case of an error
         }
     }
-    
-    
-    
+
     async function fetchData(offset = null) {
         const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}?${offset ? `offset=${offset}` : ''}`;
     
@@ -220,8 +190,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     
-
-
     async function fetchAllData() {
         mainContent.style.display = 'none';
         secondaryContent.style.display = 'none';
@@ -299,14 +267,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     
-    
     async function filterAndSortRecords(records, status, isSecondary) {
         console.log(`🔍 Filtering records for status: ${status}`);
         console.log(`📌 Total records before filtering: ${records.length}`);
     
         const filteredRecords = records.filter(record => {
             const match = record.fields['Status'] === status;
-            console.log(`  - ${record.id}: Status = ${record.fields['Status']}, Match = ${match}`);
             return match;
         });
         
@@ -369,8 +335,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
         
-   
-    
     // Resize observer to adjust the secondary table width when the main table resizes
     const mainTable = document.querySelector('#airtable-data');
     const resizeObserver = new ResizeObserver(() => {
@@ -411,7 +375,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 offset = data.offset || null;
             } while (offset); // ✅ Keep fetching until there’s no offset left
     
-            console.log("✅ All records fetched:", allRecords);
             return allRecords;
     
         } catch (error) {
@@ -613,8 +576,6 @@ document.querySelectorAll("tbody tr").forEach((row, index) => {
         records.forEach(record => {
             const fields = record.fields;
             const row = document.createElement('tr');
-         
-
             const cell = document.createElement('td');
             row.appendChild(cell);
     
@@ -694,12 +655,8 @@ document.querySelectorAll("tbody tr").forEach((row, index) => {
     
             tbody.appendChild(row);
             });
-            console.log(`✅ Successfully displayed ${records.length} records in ${tableSelector}`);
 
         }
-
-
-
   
     document.getElementById('search-input').addEventListener('input', function () {
         const searchValue = this.value.toLowerCase();

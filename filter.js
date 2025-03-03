@@ -246,7 +246,6 @@ function loadFiltersFromLocalStorage() {
             console.log("✅ Checkboxes exist, setting filters...");
             document.querySelectorAll('#filter-branch input[name="branch"]').forEach(checkbox => {
                 checkbox.checked = selectedFilters.includes(checkbox.value);
-                console.log(`🔘 Checkbox '${checkbox.value}': ${checkbox.checked}`);
             });
 
             filterRows(); // ✅ Apply filters after checkboxes exist
