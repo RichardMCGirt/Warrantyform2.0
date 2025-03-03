@@ -259,6 +259,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 record.displayFieldManager = managerId && fieldManagerMap[managerId] ? fieldManagerMap[managerId] : 'Unknown';
             });
     
+            // Count records by status
+            const fieldTechReviewNeededCount = allRecords.filter(record => record.fields['Status'] === 'Field Tech Review Needed').length;
+            const scheduledAwaitingFieldCount = allRecords.filter(record => record.fields['Status'] === 'Scheduled- Awaiting Field').length;
+            console.log(`📌 Field Tech Review Needed: ${fieldTechReviewNeededCount}`);
+            console.log(`📌 Scheduled - Awaiting Field: ${scheduledAwaitingFieldCount}`);
+    
             const [primaryRecords, secondaryRecords] = await Promise.all([
                 filterAndSortRecords(allRecords, 'Field Tech Review Needed', false),
                 filterAndSortRecords(allRecords, 'Scheduled- Awaiting Field', true)
@@ -293,11 +299,32 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     
+    
     async function filterAndSortRecords(records, status, isSecondary) {
-        return records
-            .filter(record => record.fields['Status'] === status && (!isSecondary || !record.fields['Field Tech Reviewed']))
-            .sort((a, b) => a.displayFieldManager.localeCompare(b.displayFieldManager));
+        console.log(`🔍 Filtering records for status: ${status}`);
+        console.log(`📌 Total records before filtering: ${records.length}`);
+    
+        const filteredRecords = records.filter(record => {
+            const match = record.fields['Status'] === status;
+            console.log(`  - ${record.id}: Status = ${record.fields['Status']}, Match = ${match}`);
+            return match;
+        });
+        
+    
+        console.log(`✅ Found ${filteredRecords.length} records for status: ${status}`);
+    
+        // Ensure sorting only happens when 'displayFieldManager' exists
+        const sortedRecords = filteredRecords.sort((a, b) => {
+            const aField = a.displayFieldManager || "";
+            const bField = b.displayFieldManager || "";
+            return aField.localeCompare(bField);
+        });
+    
+        console.log(`📌 Sorted ${sortedRecords.length} records for status: ${status}`);
+    
+        return sortedRecords;
     }
+    
 
     document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("filter-branch").addEventListener("change", function () {
@@ -358,20 +385,40 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchAllData();
 
     async function fetchAirtableFields() {
-        const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}?maxRecords=1`;
-        try {
-            const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${airtableApiKey}` }
-            });
+        const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}`;
+        let offset = null;
+        let allRecords = [];
     
-            const data = await response.json();
+        try {
+            do {
+                let fetchUrl = url;
+                if (offset) {
+                    fetchUrl += `?offset=${offset}`;
+                }
+    
+                const response = await fetch(fetchUrl, {
+                    headers: { Authorization: `Bearer ${airtableApiKey}` }
+                });
+    
+                if (!response.ok) throw new Error(`❌ Error fetching data: ${response.statusText}`);
+    
+                const data = await response.json();
+    
+                // ✅ Store fetched records
+                allRecords = [...allRecords, ...data.records];
+    
+                // ✅ Update offset if more records exist
+                offset = data.offset || null;
+            } while (offset); // ✅ Keep fetching until there’s no offset left
+    
+            console.log("✅ All records fetched:", allRecords);
+            return allRecords;
+    
         } catch (error) {
-            console.error('Error fetching fields from Airtable:', error);
+            console.error('❌ Error fetching fields from Airtable:', error);
+            return [];
         }
     }
-
-
-    
     
 
     async function fetchDataAndInitializeFilter() {
@@ -647,6 +694,8 @@ document.querySelectorAll("tbody tr").forEach((row, index) => {
     
             tbody.appendChild(row);
             });
+            console.log(`✅ Successfully displayed ${records.length} records in ${tableSelector}`);
+
         }
 
 
