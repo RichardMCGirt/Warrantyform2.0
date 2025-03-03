@@ -589,7 +589,16 @@ async function displayImages(files, containerId) {
 
     console.log(`✅ Files displayed for ${containerId}`);
 }
-    
+   
+checkbox.addEventListener("change", function () {
+    wrapperDiv.classList.toggle("checked", this.checked);
+});
+
+checkbox.addEventListener("touchstart", function (event) {
+    event.stopPropagation(); // Prevent interference from other events
+});
+
+
 document.getElementById("delete-images-btn").addEventListener("click", async function (event) {
     event.preventDefault(); // ✅ Prevents page refresh
     console.log("🗑️ Delete Images button clicked! ✅");
