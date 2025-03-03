@@ -324,7 +324,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
     
             console.log("✅ Airtable record updated successfully:", fields);
-            showToast("✅ Changes saved successfully!", "success");
     
         } catch (error) {
             console.error("❌ Error updating Airtable:", error);
@@ -861,11 +860,13 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
     
-        // ✅ Call updateAirtableRecord with lotName
         try {
+            // ✅ Call updateAirtableRecord with lotName
             await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, updatedFields);
             console.log("✅ Airtable record updated successfully.");
-            alert("Job details saved successfully!");
+            
+            // ✅ Show toast only after successful save
+            showToast("✅ Job details saved successfully!", "success");
     
             // 🔹 Fetch Updated Data and Refresh UI
             setTimeout(async () => {
@@ -875,9 +876,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 1000); 
         } catch (error) {
             console.error("❌ Error updating Airtable:", error);
-            alert("Error saving job details. Please try again.");
+            showToast("❌ Error saving job details. Please try again.", "error");
         }
     });
+    
     
     function showToast(message, type = "success") {
         let toast = document.getElementById("toast-message");
@@ -904,7 +906,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     
     // Call this function when saving job details
-    showToast("✅ Job details saved successfully!");
     
     
     // 🔹 Fetch Dropbox Token from Airtable
