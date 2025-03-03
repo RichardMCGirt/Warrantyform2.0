@@ -880,7 +880,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     
-    
     function showToast(message, type = "success") {
         let toast = document.getElementById("toast-message");
     
@@ -904,7 +903,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 3000);
     }
      
-    
     // 🔹 Fetch Dropbox Token from Airtable
     async function fetchDropboxToken() {
         try {
@@ -1083,7 +1081,6 @@ document.addEventListener("DOMContentLoaded", () => {
             await loadImagesForLot(lotName, document.getElementById("field-status")?.value);
                     }
     }
-    
     
     // 🔹 Upload File to Dropbox
     async function uploadFileToDropbox(file) {

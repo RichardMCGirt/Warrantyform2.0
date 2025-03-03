@@ -299,15 +299,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .sort((a, b) => a.displayFieldManager.localeCompare(b.displayFieldManager));
     }
 
-    
-    
-    
-
-   
-    
-
-    
-    
     document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("filter-branch").addEventListener("change", function () {
             applyFilters();
@@ -326,28 +317,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-    
-    
-    /**
-     * Fetch and map "Field Manager Assigned" from linked records
-     */
-    async function populateFieldManagerNames(records) {
-        // Fetch all field managers once
-        const managerIdMap = await fetchFieldManagerNames();
-    
-        // Assign display names to records
-        records.forEach(record => {
-            const managerId = record.fields['Field Manager Assigned']?.[0] || null;
-            record.displayFieldManager = managerIdMap[managerId] || 'Unknown'; // Default if not found
-        });
-    
-        console.log("✅ Assigned Field Manager Display Names:", records.map(r => r.displayFieldManager));
-    }
-    
-    
-    /**
-     * Fetch Field Manager names from Airtable based on record IDs
-     */
+       
     async function fetchFieldManagerNames() {
         const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/tblHdf9KskO1auw3l`; // Use the correct Table ID
     
@@ -371,79 +341,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return {};
         }
     }
-    
-    function checkForChanges(recordId) {
-        console.log(`Checking for changes in record ID: ${recordId}`);
-        const currentValues = updatedFields[recordId] || {};
-        console.log("Current values:", currentValues);
-    
-        const fieldsHaveChanged = Object.keys(currentValues).some(field => {
-            const currentValue = currentValues[field];
-            const originalValue = originalValues[recordId] ? originalValues[recordId][field] : undefined;
-            console.log(`Comparing field "${field}": current value = ${currentValue}, original value = ${originalValue}`);
-            return currentValue !== originalValue;
-        });
-    
-        hasChanges = fieldsHaveChanged;
-        console.log(`Changes detected: ${hasChanges}`);
-    
-        if (hasChanges) {
-            console.log(`Showing submit button for record ID: ${recordId}`);
-            showSubmitButton(recordId);
-        } else {
-            console.log(`Hiding submit button for record ID: ${recordId}`);
-            hideSubmitButton();
-        }
-    }
-
-
-    function handleInputChange(event) {
-        const recordId = this.closest('tr').dataset.id;
-        const field = this.dataset.field;
-        console.log(`Handling input change for record ID: ${recordId}, field: ${field}`);
-    
-        updatedFields[recordId] = updatedFields[recordId] || {};
-        updatedFields[recordId][field] = this.value || this.textContent;
-        console.log(`Updated fields for record ID ${recordId}:`, updatedFields[recordId]);
-    
-        checkForChanges(recordId);
-    }
-    
-    document.querySelectorAll('input:not([type="radio"]), select, td[contenteditable="true"]').forEach(element => {
-        element.addEventListener('input', function () {
-            const closestRow = this.closest('tr');
-            if (!closestRow) {
-                console.error("No valid parent <tr> found for element:", this);
-                return;
-            }
-    
-            const recordId = closestRow.dataset.id;
-            console.log(`Input event detected for record ID: ${recordId}`);
-            handleInputChange.call(this);
-            checkForChanges(recordId);
-        });
-    
-        element.addEventListener('change', function () {
-            const recordId = this.closest('tr').dataset.id;
-            console.log(`Change event detected for record ID: ${recordId}`);
-            handleInputChange.call(this);
-            checkForChanges(recordId);
-        });
-    
-        element.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                const recordId = element.closest('tr').dataset.id;
-                console.log(`Enter key pressed for record ID: ${recordId}`);
-                handleInputChange.call(element, event);
-                checkForChanges(recordId);
-                if (hasChanges) {
-                    console.log(`Submitting changes for record ID: ${recordId}`);
-                    submitChanges();
-                }
-            }
-        });
-    });
+        
+   
     
     // Resize observer to adjust the secondary table width when the main table resizes
     const mainTable = document.querySelector('#airtable-data');
@@ -471,50 +370,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
-        console.log("🔄 DOM fully loaded and parsed.");
-    
-        // Select elements
-        const menuToggle = document.getElementById("menu-toggle");
-        const checkboxContainer = document.getElementById("checkbox-container");
-    
-        // Check if elements exist
-        if (!menuToggle) {
-            console.error("❌ 'menu-toggle' button not found. Check if the ID is correct or if the element exists.");
-        } else {
-            console.log("✅ 'menu-toggle' button found.");
-        }
-    
-        if (!checkboxContainer) {
-            console.error("❌ 'checkbox-container' not found. Check if the ID is correct.");
-        } else {
-            console.log("✅ 'checkbox-container' found.");
-        }
-    
-        // Ensure both elements exist before adding the event listener
-        if (menuToggle && checkboxContainer) {
-            console.log("📌 Adding click event listener to 'menu-toggle'");
-    
-            menuToggle.addEventListener("click", function (event) {
-                console.log("🟢 'menu-toggle' clicked! Event triggered.");
-                console.log("📌 Event details:", event);
-    
-                // Toggle visibility
-                checkboxContainer.classList.toggle("hidden");
-    
-                if (checkboxContainer.classList.contains("hidden")) {
-                    console.log("🔴 'checkbox-container' is now hidden.");
-                } else {
-                    console.log("🟢 'checkbox-container' is now visible.");
-                }
-            });
-    
-            console.log("✅ Click event listener added successfully to 'menu-toggle'.");
-        } else {
-            console.error("🚨 Unable to attach event listener: 'menu-toggle' or 'checkbox-container' missing.");
-        }
-    });
-    
+
     
     
 

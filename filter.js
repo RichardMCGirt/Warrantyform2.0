@@ -29,8 +29,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-
-
 // ✅ Function to observe when table rows are added
 function observeTableData(selector) {
     const targetNode = document.querySelector(selector);
@@ -56,8 +54,6 @@ function observeTableData(selector) {
 
     observer.observe(targetNode, { childList: true });
 }
-
-
 
 // ✅ Generate Checkboxes only when menu is clicked
 async function generateCheckboxes() {
@@ -99,9 +95,6 @@ async function generateCheckboxes() {
     
     attachCheckboxListeners();
 }
-
-
-
 
 // ✅ Ensure fetchFieldTechs is defined
 async function fetchFieldTechs() {
@@ -194,7 +187,6 @@ function filterRows() {
     });
 }
 
-
 // ✅ Function to extract Field Techs from the table dynamically
 function getFieldTechsFromTable() {
     const fieldTechsInTable = new Set();
@@ -265,7 +257,6 @@ function loadFiltersFromLocalStorage() {
     }
 }
 
-
 // ✅ Function to ensure table data is loaded before filtering
 function waitForTableData(callback) {
     const tableCheckInterval = setInterval(() => {
@@ -279,10 +270,6 @@ function waitForTableData(callback) {
         }
     }, 300); // ✅ Check every 300ms until table has rows
 }
-
-
-
-
 
 function handleCheckboxChange(event) {
     const checkbox = event.target;
