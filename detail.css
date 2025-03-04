@@ -463,6 +463,11 @@ input[type="file"] {
 }
 
 
+#sub-not-needed:checked {
+    background-color: red; /* Just to test if it's applying */
+}
+
+
 /* Ensure checkbox is large enough to tap */
 #job-completed {
     width: 18px;

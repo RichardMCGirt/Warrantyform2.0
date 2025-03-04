@@ -65,6 +65,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("🚀 Page Loaded: JavaScript execution started!");
     dropboxAccessToken = await fetchDropboxToken();
 
+   
+
+
     // ✅ Extract URL Parameters
     const params = new URLSearchParams(window.location.search);
     let recordId = params.get("id");
@@ -114,6 +117,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // ✅ Populate UI with Primary Fields
         populatePrimaryFields(primaryData.fields);
+        dropboxAccessToken = await fetchDropboxToken(); // ✅ Ensure fetchDropboxToken is called AFTER airtableBaseId is declared
+
 
         // ✅ Fetch Subcontractors Based on `b` Value and Populate Dropdown
         console.log("✅ Fetching subcontractors based on branch `b`...");
@@ -157,6 +162,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             
         }
 
+        
+
         // Initialize subcontractor checkbox and dropdown state from job data
         function setInputValue(fieldId, value) {
             const inputElement = document.getElementById(fieldId);
@@ -170,7 +177,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         // Set initial checkbox state from job data
-        setInputValue("sub-not-needed", primaryData.fields["Subcontractor Not Needed"]);
+        setCheckboxValue("sub-not-needed", primaryData.fields["Subcontractor Not Needed"]);
 
         // Apply subcontractor logic on load
         toggleSubcontractorField();
@@ -1483,8 +1490,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (element) element.value = value || "";
     }
 
-     function setCheckboxValue(id, value) {
+    function setCheckboxValue(id, value) {
         const element = document.getElementById(id);
-        if (element) element.checked = value || false;
+        if (element) {
+            element.checked = Boolean(value);
+            console.log(`✅ Checkbox ${id} set to:`, element.checked);
+        }
     }
+    
 });
