@@ -66,7 +66,7 @@
 </select>
 
 <div class="sub-completed-container">
-    <label id="job-completed-label" for="job-completed">Sub not needed:</label>
+    <label id="sub-not-needed" for="job-completed">Sub not needed:</label>
     <input type="checkbox" id="sub-not-needed" data-field="Subcontractor Not Needed">
 </div>
 
@@ -125,13 +125,15 @@
     </div>
     <div id="issue-pictures" class="file-preview"></div>
 
+    <div class="form-group">
+        <label>Field Tech Reviewed:</label>
+        <input type="checkbox" id="field-tech-reviewed" data-field="Field Tech Reviewed">
+    </div>
+    
+
     <!-- Preview area for uploaded images -->
     <div id="file-preview" class="file-preview"></div>
 
-<div class="form-group">
-    <label>Field Tech Reviewed:</label>
-    <input type="checkbox" id="field-tech-reviewed" data-field="Field Tech Reviewed">
-</div>
 
 </div>
 
@@ -149,9 +151,10 @@
 </button> 
 
 <div class="job-completed-container">
-    <label id="job-completed-label" for="job-completed">Job Completed:</label>
-    <input type="checkbox" id="job-completed" data-field="Job Completed">
+    <label id="job-completed" for="job-completed">Job Completed:</label>
+    <input type="checkbox" id="job-completed-check" data-field="Job Completed">
 </div>
+
 
 
 </div>

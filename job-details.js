@@ -540,15 +540,21 @@ async function populatePrimaryFields(job) { // ✅ Make function async
 
     setCheckboxValue("job-completed", job["Job Completed"]);
 
-    // ✅ Hide elements if "Field Tech Review Needed"
-    if (job["Status"] === "Field Tech Review Needed") {
-        console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
-        hideElementById("completed-pictures");
-        hideElementById("upload-completed-picture");
-        hideElementById("completed-pictures-heading");
-        hideElementById("upload-completed-picture"); 
-        hideElementById("file-input-container"); 
-    }
+   // ✅ Hide elements if "Field Tech Review Needed"
+   if (job["Status"] === "Field Tech Review Needed") {
+    console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
+    hideElementById("completed-pictures");
+    hideElementById("upload-completed-picture");
+    hideElementById("completed-pictures-heading");
+    hideElementById("file-input-container"); 
+    hideElementById("job-completed-container"); // Ensure this hides the new div
+    hideElementById("job-completed"); // Ensure this hides the new div
+    hideElementById("job-completed-check"); // Ensure this hides the new div
+
+
+} else {
+    showElement("job-completed-container"); // Show it if status is NOT "Field Tech Review Needed"
+}
 
     showElement("save-job"); 
 }
@@ -558,10 +564,12 @@ function hideElementById(elementId) {
     const element = document.getElementById(elementId);
     if (element) {
         element.style.display = "none";
+        console.log(`🚫 Hiding element: ${elementId}`);
     } else {
         console.warn(`⚠️ Element not found: ${elementId}`);
     }
 }
+
 
 function showElement(elementId) {
     const element = document.getElementById(elementId);
@@ -571,6 +579,7 @@ function showElement(elementId) {
         console.warn(`⚠️ Element not found: ${elementId}`);
     }
 }
+
 
 async function displayImages(files, containerId) {
     const container = document.getElementById(containerId);

@@ -455,7 +455,7 @@ input[type="file"] {
 
 /* Center label and checkbox horizontally */
 .job-completed-container {
-    display: flex;
+    display: block !important; /* If this exists, it will override JS changes */
     justify-content: center; /* Center elements on the X-axis */
     align-items: center; /* Align them properly */
     gap: 10px; /* Space between label and checkbox */
