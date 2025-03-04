@@ -976,11 +976,6 @@ async function loadImagesForLot(lotName) {
     }
 }
 
-
-
-
-
-
     async function testFetchImages() {
         try {
             const recordData = await fetchAirtableRecord(airtableTableName, recordId);

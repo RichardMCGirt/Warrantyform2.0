@@ -13,10 +13,7 @@ Promise.all([
 
     const mainContent = document.getElementById('main-content');
     const secondaryContent = document.getElementById('secoundary-content');
-   
-
-
-    
+       
 document.addEventListener("DOMContentLoaded", function () {
     function hideColumnsExcept(tableId, columnIndex) {
         const table = document.getElementById(tableId);
@@ -312,7 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
        
     async function fetchFieldManagerNames() {
-        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/tblHdf9KskO1auw3l`; // Use the correct Table ID
+        const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/tblHdf9KskO1auw3l`; 
     
         try {
             const response = await fetch(url, {
@@ -582,27 +579,23 @@ document.querySelectorAll("tbody tr").forEach((row, index) => {
             const fieldConfigs = isSecondary ? [
                 { field: 'b', value: fields['b'] || 'N/A', link: true },
                 { field: 'field tech', value: fields['field tech'] || '', editable: false },
-
                 { 
                     field: 'Lot Number and Community/Neighborhood', 
                     value: fields['Lot Number and Community/Neighborhood'] || 'N/A', 
-                    jobDetailsLink: true  // ✅ Define jobDetailsLink here
+                    jobDetailsLink: true  
                 }
-
             ] : [
-                { field: 'b', value: fields['b'] || 'N/A', link: true },  // Keep only this "Branch" entry
+                { field: 'b', value: fields['b'] || 'N/A', link: true },
                 { field: 'field tech', value: fields['field tech'] || '', editable: false },
                 { 
                     field: 'Lot Number and Community/Neighborhood', 
                     value: fields['Lot Number and Community/Neighborhood'] || 'N/A', 
-                    jobDetailsLink: true  // ✅ Define jobDetailsLink here
+                    jobDetailsLink: true  
                 }
-
             ];
-
-
+    
             fieldConfigs.forEach(config => {
-                const { field, value, image } = config;
+                const { field, value } = config;
                 const cell = document.createElement('td');
                 cell.dataset.id = record.id;
                 cell.dataset.field = field;
@@ -610,26 +603,8 @@ document.querySelectorAll("tbody tr").forEach((row, index) => {
                 cell.style.maxWidth = '200px';
                 cell.style.position = 'relative';
     
-                if (image) {
-                    // Handle images
-                    if (Array.isArray(value) && value.length > 0) {
-                        value.forEach(imgObj => {
-                            if (imgObj.url) {
-                                const img = document.createElement('img');
-                                img.src = imgObj.url;
-                                img.alt = 'Image';
-                                img.style.maxWidth = '100px';
-                                img.style.maxHeight = '100px';
-                                img.style.display = 'block';
-                                img.style.margin = '5px auto';
-                                cell.appendChild(img);
-                            }
-                        });
-                    }
-                } else {
-                    cell.textContent = value;
-                }
-    
+                cell.textContent = value;
+        
                 row.appendChild(cell);
             });
     
@@ -654,9 +629,9 @@ document.querySelectorAll("tbody tr").forEach((row, index) => {
             }
     
             tbody.appendChild(row);
-            });
-
-        }
+        });
+    }
+    
   
     document.getElementById('search-input').addEventListener('input', function () {
         const searchValue = this.value.toLowerCase();
