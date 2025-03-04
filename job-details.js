@@ -63,7 +63,6 @@ function openMapApp() {
 
 document.addEventListener("DOMContentLoaded", async function () {
     console.log("🚀 Page Loaded: JavaScript execution started!");
-    dropboxAccessToken = await fetchDropboxToken();
 
    
 
@@ -91,6 +90,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         Base_ID: airtableBaseId,
         Table_Name: airtableTableName,
     });
+    dropboxAccessToken = await fetchDropboxToken();
+
 
     if (!airtableApiKey || !airtableBaseId || !airtableTableName) {
         console.error("❌ Missing Airtable credentials! Please check your environment variables.");
@@ -117,8 +118,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // ✅ Populate UI with Primary Fields
         populatePrimaryFields(primaryData.fields);
-        dropboxAccessToken = await fetchDropboxToken(); // ✅ Ensure fetchDropboxToken is called AFTER airtableBaseId is declared
-
+        await loadImagesForLot(lotName, status).then(() => {
+            checkAndHideDeleteButton();
+        });
+        
 
         // ✅ Fetch Subcontractors Based on `b` Value and Populate Dropdown
         console.log("✅ Fetching subcontractors based on branch `b`...");
@@ -130,7 +133,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         const subcontractorCheckbox = document.querySelector("#sub-not-needed");
         const subcontractorDropdown = document.querySelector("#subcontractor-dropdown");
         const saveButton = document.querySelector("#save-job");
-
+ // Ensure the delete button exists before referencing it
+ const deleteButton = document.getElementById("delete-images-btn");
+ if (deleteButton) {
+     deleteButton.style.display = "block"; // Force visibility
+ }
+ 
+ if (!deleteButton) {
+     console.warn("⚠️ Warning: Delete button not found in the DOM. Skipping event listener setup.");
+     return; // Exit to prevent errors
+ }
         if (!subcontractorCheckbox || !subcontractorDropdown || !saveButton) {
             console.warn("⚠️ Subcontractor checkbox, dropdown, or save button not found in the DOM!");
             return;
@@ -161,6 +173,26 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
             
         }
+
+        function checkImagesVisibility() {
+            const images = document.querySelectorAll(".image-container img"); // Adjust selector if needed
+            if (images.length > 0) {
+                deleteButton.style.display = "block"; // Show button if images exist
+            } else {
+                deleteButton.style.display = "none"; // Hide button if no images
+            }
+        }
+    
+        // Optional: Run check when images are dynamically added/removed
+        const observer = new MutationObserver(checkImagesVisibility);
+        observer.observe(document.body, { childList: true, subtree: true });
+    
+        // Handle delete button click (assuming you have logic to delete images)
+        deleteButton.addEventListener("click", function () {
+            document.querySelectorAll(".image-container img.selected").forEach(img => img.remove());
+            checkImagesVisibility(); // Re-check visibility after deletion
+        });
+
 
         
 
@@ -451,19 +483,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
     
-function toggleDeleteButton() {
-    const deleteButton = document.getElementById("delete-images-btn");
-    const images = document.querySelectorAll(".image-container img"); // Change selector based on your structure
 
-    if (images.length > 0) {
-        deleteButton.style.display = "block"; // Show button if images exist
-    } else {
-        deleteButton.style.display = "none"; // Hide button if no images
-    }
-}
 
-// ✅ Call this function after images load or after deletion
-document.addEventListener("DOMContentLoaded", toggleDeleteButton);
     
     
     document.querySelectorAll(".job-link").forEach(link => {
@@ -569,13 +590,13 @@ async function populatePrimaryFields(job) { // ✅ Make function async
 // Function to hide an element safely
 function hideElementById(elementId) {
     const element = document.getElementById(elementId);
-    if (element) {
-        element.style.display = "none";
-        console.log(`🚫 Hiding element: ${elementId}`);
-    } else {
+    if (!element) {
         console.warn(`⚠️ Element not found: ${elementId}`);
+        return; // Skip if the element does not exist
     }
+    element.style.display = "none";
 }
+
 
 
 function showElement(elementId) {
@@ -586,6 +607,8 @@ function showElement(elementId) {
         console.warn(`⚠️ Element not found: ${elementId}`);
     }
 }
+
+
 
 
 async function displayImages(files, containerId) {
@@ -729,17 +752,27 @@ async function displayImages(files, containerId) {
    
 function checkAndHideDeleteButton() {
     const deleteButton = document.getElementById("delete-images-btn");
-    const issueImages = document.querySelectorAll("#issue-pictures .file-wrapper").length;
-    const completedImages = document.querySelectorAll("#completed-pictures .file-wrapper").length;
 
-    if (issueImages === 0 && completedImages === 0) {
-        console.log("🛑 No images found. Hiding delete button.");
-        deleteButton.style.display = "none";
-    } else {
+    if (!deleteButton) {
+        console.warn("⚠️ Delete button not found.");
+        return;
+    }
+
+    const issueImages = document.querySelectorAll("#issue-pictures .file-wrapper img").length;
+    const completedImages = document.querySelectorAll("#completed-pictures .file-wrapper img").length;
+
+    console.log(`📌 Checking images: Issue Images: ${issueImages}, Completed Images: ${completedImages}`);
+
+    if (issueImages > 0 || completedImages > 0) {
         console.log("✅ Images found. Showing delete button.");
         deleteButton.style.display = "block";
+    } else {
+        console.log("🚫 No images found. Hiding delete button.");
+        deleteButton.style.display = "none";
     }
 }
+
+
 
 
 
@@ -818,22 +851,15 @@ try {
 }
 
 async function fetchImagesByLotName(lotName, imageField) {
-    console.log("📡 Fetching images for Lot Name:", lotName);
+    console.log(`📡 Fetching images for lot: ${lotName}, field: ${imageField}`);
 
     if (!lotName) {
         console.error("❌ Lot Name is missing. Cannot fetch images.");
         return [];
     }
 
-    // ✅ Trim lotName to remove accidental spaces
-    lotName = lotName.trim();
-
-    // ✅ Escape special characters in lot name (Double quotes are preferred)
     const filterFormula = `AND({Lot Number and Community/Neighborhood}="${lotName}")`;
-    const formattedImageField = encodeURIComponent(imageField);
-
-    // ✅ Construct the API URL
-    const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}?filterByFormula=${encodeURIComponent(filterFormula)}&fields[]=${formattedImageField}`;
+    const url = `https://api.airtable.com/v0/${window.env.AIRTABLE_BASE_ID}/${window.env.AIRTABLE_TABLE_NAME}?filterByFormula=${encodeURIComponent(filterFormula)}&fields[]=${encodeURIComponent(imageField)}`;
 
     console.log("🔗 Airtable API Request:", url);
 
@@ -848,27 +874,20 @@ async function fetchImagesByLotName(lotName, imageField) {
         }
 
         const data = await response.json();
+        console.log("📸 API Response Data:", data);
 
         if (data.records.length === 0) {
             console.warn(`⚠️ No records found for Lot Name: ${lotName}`);
             return [];
         }
 
-        // ✅ Fetch the first matching record
-        const record = data.records[0];
-
-        if (record.fields && record.fields[imageField]) {
-            console.log(`✅ Images found for '${lotName}' in field '${imageField}':`, record.fields[imageField]);
-            return record.fields[imageField];
-        } else {
-            console.warn(`⚠️ No images found in field '${imageField}' for '${lotName}'`);
-            return [];
-        }
+        return data.records[0].fields[imageField] || [];
     } catch (error) {
         console.error("❌ Error fetching images by Lot Name:", error);
         return [];
     }
 }
+
 
 async function loadImagesForLot(lotName, status) {
     console.log("📡 Loading images for lot:", lotName, "| Status:", status);
@@ -878,8 +897,25 @@ async function loadImagesForLot(lotName, status) {
     const images = await fetchImagesByLotName(lotName, imageField);
     console.log(`🖼️ Loaded Images from ${imageField}:`, images);
 
-    displayImages(images, imageField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
+    if (!images || images.length === 0) {
+        console.warn(`⚠️ No images found in ${imageField}, hiding section.`);
+        document.getElementById("issue-pictures").style.display = "none";
+        document.getElementById("completed-pictures").style.display = "none";
+        checkAndHideDeleteButton(); // Hide delete button if no images
+        return;
+    }
+
+    document.getElementById("issue-pictures").style.display = "block";
+    document.getElementById("completed-pictures").style.display = "block";
+
+    await displayImages(images, imageField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
+
+    setTimeout(checkAndHideDeleteButton, 500); // ✅ Ensure delete button appears after images are displayed
 }
+
+
+
+
 
     async function testFetchImages() {
         try {
@@ -1204,11 +1240,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (uploadedUrls.length > 0) {
             await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, { [targetField]: uploadedUrls });
     
-            // ✅ Refresh only the images after upload
             await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+    
             await loadImagesForLot(lotName, document.getElementById("field-status")?.value);
-                    }
+            setTimeout(checkAndHideDeleteButton, 500); // ✅ Ensure delete button appears after upload
+        }
     }
+    
+    
     
     // 🔹 Upload File to Dropbox
     async function uploadFileToDropbox(file) {
