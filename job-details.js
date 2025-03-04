@@ -898,29 +898,40 @@ async function fetchImagesByLotName(lotName, imageField) {
 }
 
 
-async function loadImagesForLot(lotName, status) {
-    console.log("📡 Loading images for lot:", lotName, "| Status:", status);
+async function loadImagesForLot(lotName) {
+    console.log("📡 Loading images for lot:", lotName);
 
-    const imageField = (status === "Field Tech Review Needed") ? "Picture(s) of Issue" : "Completed  Pictures";
+    // Fetch both sets of images
+    const issueImages = await fetchImagesByLotName(lotName, "Picture(s) of Issue");
+    const completedImages = await fetchImagesByLotName(lotName, "Completed Pictures");
 
-    const images = await fetchImagesByLotName(lotName, imageField);
-    console.log(`🖼️ Loaded Images from ${imageField}:`, images);
+    console.log("🖼️ Loaded Images - Issue:", issueImages);
+    console.log("🖼️ Loaded Images - Completed:", completedImages);
 
-    if (!images || images.length === 0) {
-        console.warn(`⚠️ No images found in ${imageField}, hiding section.`);
-        document.getElementById("issue-pictures").style.display = "none";
-        document.getElementById("completed-pictures").style.display = "none";
+    // Check if any images exist, otherwise hide the sections
+    const hasIssueImages = issueImages && issueImages.length > 0;
+    const hasCompletedImages = completedImages && completedImages.length > 0;
+
+    document.getElementById("issue-pictures").style.display = hasIssueImages ? "block" : "none";
+    document.getElementById("completed-pictures").style.display = hasCompletedImages ? "block" : "none";
+
+    if (!hasIssueImages && !hasCompletedImages) {
+        console.warn("⚠️ No images found, hiding sections.");
         checkAndHideDeleteButton(); // Hide delete button if no images
         return;
     }
 
-    document.getElementById("issue-pictures").style.display = "block";
-    document.getElementById("completed-pictures").style.display = "block";
-
-    await displayImages(images, imageField === "Picture(s) of Issue" ? "issue-pictures" : "completed-pictures");
+    // Display images if available
+    if (hasIssueImages) {
+        await displayImages(issueImages, "issue-pictures");
+    }
+    if (hasCompletedImages) {
+        await displayImages(completedImages, "completed-pictures");
+    }
 
     setTimeout(checkAndHideDeleteButton, 500); // ✅ Ensure delete button appears after images are displayed
 }
+
 
 
 

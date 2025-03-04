@@ -432,9 +432,7 @@ input[type="file"] {
     transition: opacity 0.3s ease-in-out, border 0.3s ease-in-out;
 }
 
-#delete-images-btn {
-    display: block !important;
-}
+
 
 
 /* "Marked for Deletion" Overlay */
