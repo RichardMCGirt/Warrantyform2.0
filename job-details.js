@@ -323,15 +323,24 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     document.getElementById("upload-issue-picture").addEventListener("change", async function (event) {
         if (await ensureDropboxToken()) {
+            showToast("📤 Uploading image...", "info"); // Show upload start toast
             await uploadToDropbox(event.target.files, "Picture(s) of Issue");
+            showToast("✅ Image uploaded successfully!", "success"); // Show success toast
+        } else {
+            showToast("❌ Failed to authenticate Dropbox!", "error"); // Show error toast
         }
     });
     
     document.getElementById("upload-completed-picture").addEventListener("change", async function (event) {
         if (await ensureDropboxToken()) {
+            showToast("📤 Uploading image...", "info"); // Show upload start toast
             await uploadToDropbox(event.target.files, "Completed  Pictures");
+            showToast("✅ Image uploaded successfully!", "success"); // Show success toast
+        } else {
+            showToast("❌ Failed to authenticate Dropbox!", "error"); // Show error toast
         }
     });
+    
     
     
 
