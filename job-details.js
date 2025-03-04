@@ -902,7 +902,7 @@ async function loadImagesForLot(lotName) {
 
     // Fetch both sets of images
     const issueImages = await fetchImagesByLotName(lotName, "Picture(s) of Issue");
-    const completedImages = await fetchImagesByLotName(lotName, "Completed Pictures");
+    const completedImages = await fetchImagesByLotName(lotName, "Completed  Pictures");
 
     console.log("🖼️ Loaded Images - Issue:", issueImages);
     console.log("🖼️ Loaded Images - Completed:", completedImages);
