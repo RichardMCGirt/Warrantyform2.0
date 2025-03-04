@@ -454,13 +454,14 @@ input[type="file"] {
 
 
 /* Center label and checkbox horizontally */
-.job-completed-container {
-    display: block !important; /* If this exists, it will override JS changes */
-    justify-content: center; /* Center elements on the X-axis */
-    align-items: center; /* Align them properly */
-    gap: 10px; /* Space between label and checkbox */
-    margin-top: 10px;
+.sub-completed-container {
+    display: flex;
+    flex-direction: column; /* Places items in a vertical stack */
+    align-items: center; /* Centers items horizontally */
+    text-align: center; /* Ensures text is centered */
+    margin: 20px auto; /* Centers the container horizontally */
 }
+
 
 /* Ensure checkbox is large enough to tap */
 #job-completed {
@@ -470,6 +471,14 @@ input[type="file"] {
 }
 
 
+.sub-completed-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Adjust space between label and checkbox */
+    text-align: center;
+    margin: 20px auto; /* Centers it horizontally */
+}
 
 
 
