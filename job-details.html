@@ -124,11 +124,14 @@
                min-height: 100px; resize: vertical;"
         autocomplete="off" autocorrect="on" autocapitalize="sentences" spellcheck="true"></textarea>
         </div>
-    <div class="file-input-container">
-        <label for="upload-issue-picture">Upload Issue Pictures</label>
-        <input type="file" id="upload-issue-picture" class="custom-file-input" multiple accept="image/*">
-    </div>
-    <div id="issue-pictures" class="file-preview"></div>
+        <div class="file-input-container">
+            <label class="custom-file-label" for="upload-issue-picture">Upload Issue Pictures</label>
+            <input type="file" id="upload-issue-picture" multiple accept="image/*">
+            <div id="issue-file-list"></div>
+        </div>
+
+        <div id="issue-pictures" style="display: none;"></div>
+
 
     <div class="form-group">
         <label>Field Tech Reviewed:</label>
@@ -142,14 +145,22 @@
 
 </div>
 
-  <div id="file-input-container">
-    <label for="upload-completed-picture">Upload Completed Pictures</label>
+<div id="file-input-container">
+    <label class="custom-file-label" for="upload-completed-picture">Upload Completed Pictures</label>
     <input type="file" id="upload-completed-picture" multiple accept="image/*">
+    <div id="file-list"></div>
 </div>
+
+
 
 <!-- Preview area for uploaded images -->
 <h3 id="completed-pictures-heading">Completed Pictures:</h3>
 <div id="completed-pictures" class="file-preview"></div>
+
+<div id="completed-pictures" style="display: none;"></div>
+
+
+
 <button id="delete-images-btn" 
     style="background:red; color:white; padding:10px; border:none; cursor:pointer; display: none;">
     Delete Selected Images

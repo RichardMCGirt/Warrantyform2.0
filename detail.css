@@ -278,21 +278,7 @@ input[type="checkbox"] {
     display: none;
   }
 
-  .custom-file-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #007AFF; /* iOS blue */
-    color: white;
-    font-size: 16px;
-    padding: 12px 20px;
-    border-radius: 10px;
-    text-align: center;
-    width: 100%;
-    cursor: pointer;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background 0.3s;
-  }
+
 
   .custom-file-label:active {
     background-color: #005ecb;
@@ -421,6 +407,54 @@ input[type="file"] {
     color: white;
 }
 
+ #upload-issue-picture {
+      display: none;
+  }
+
+#file-input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.custom-file-label {
+    background-color: darkblue;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+}
+
+.custom-file-label:hover {
+    background-color: #0056b3;
+}
+
+#upload-completed-picture {
+    display: none; /* Hide the default file input */
+}
+
+#file-list {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #333;
+    text-align: center;
+
+}
+
+/* Center elements vertically */
+#issue-pictures,
+#completed-pictures {
+    display: flex; 
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: fit-content; /* Ensure enough height for centering */
+    text-align: center; /* Center text content */
+}
+
+
 /* ✨ Highlight Checked File - Show Red Border and Dim Background */
 .file-wrapper.checked {
     background: rgba(255, 0, 0, 0.1);
@@ -465,20 +499,8 @@ input[type="file"] {
     align-items: center; /* Centers items horizontally */
     text-align: center; /* Ensures text is centered */
     margin: 20px auto; /* Centers the container horizontally */
+    gap:10px;
 }
-
-
-#sub-not-needed:checked {
-    background-color: red; /* Just to test if it's applying */
-}
-
-
-
-
-
-
-
-
 
 /* ============================= */
 /* Buttons */
@@ -525,7 +547,7 @@ button:hover {
 
     label {
         font-size: 18px;
-        margin-bottom: 5px; /* Adds space below labels */
+        margin-bottom: 10px; /* Adds space below labels */
         display: block;
     }
 

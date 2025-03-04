@@ -630,7 +630,7 @@ async function displayImages(files, containerId) {
 
     if (!files || files.length === 0) {
         console.warn(`⚠️ No files found in ${containerId}`);
-        container.innerHTML = "<p>No files found.</p>";
+        container.innerHTML = "<p></p>";
         
         // ✅ Hide delete button if both are empty
         checkAndHideDeleteButton();
@@ -781,9 +781,6 @@ function checkAndHideDeleteButton() {
 }
 
 
-
-
-
 document.getElementById("delete-images-btn").addEventListener("click", async function (event) {
     event.preventDefault(); // ✅ Prevents page refresh
     console.log("🗑️ Delete Images button clicked! ✅");
@@ -825,38 +822,57 @@ document.getElementById("delete-images-btn").addEventListener("click", async fun
 async function deleteImagesByLotName(lotName, imageIdsToDelete, imageField) {
     console.log(`🗑️ Attempting to delete images from '${imageField}' for Lot Name:`, lotName);
 
+    // Validate input parameters
     if (!lotName) {
         console.error("❌ Lot Name is missing. Cannot delete images.");
         return;
     }
 
-    // Fetch existing images
-    let existingImages = await fetchImagesByLotName(lotName, imageField);
-    if (!existingImages || existingImages.length === 0) {
-        console.warn(`⚠️ No images found in '${imageField}'. Skipping deletion.`);
+    if (!Array.isArray(imageIdsToDelete) || imageIdsToDelete.length === 0) {
+        console.warn("⚠️ No image IDs provided for deletion. Skipping process.");
         return;
     }
 
-    console.log(`📸 Current Images in '${imageField}' Before Deletion:`, existingImages);
+    try {
+        // Fetch existing images
+        let existingImages = await fetchImagesByLotName(lotName, imageField);
 
-    // Remove selected images
-    console.log("📌 Existing images before deletion:", existingImages);
-    const updatedImages = existingImages.filter(img => !imageIdsToDelete.includes(img.id));
-    console.log("📌 Updated image list after deletion:", updatedImages);
-    
-    console.log(`🗑️ Deleting images from '${imageField}' for Lot Name: ${lotName}`);
+        if (!existingImages || existingImages.length === 0) {
+            console.warn(`⚠️ No images found in '${imageField}'. Nothing to delete.`);
+            return;
+        }
 
-try {
-    console.log(`📩 Sending updated image list to Airtable for '${imageField}':`, updatedImages);
-    await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, {
-        [imageField]: updatedImages.length > 0 ? updatedImages : []
-    });
-    console.log(`✅ Images deleted from '${imageField}'!`);
-} catch (error) {
-    console.error(`❌ Error deleting images from '${imageField}' in Airtable:`, error);
+        console.log(`📸 Current Images in '${imageField}' Before Deletion:`, existingImages);
+
+        // Filter out images to be deleted
+        const updatedImages = existingImages.filter(img => !imageIdsToDelete.includes(img.id));
+
+        console.log("📌 Updated image list after deletion:", updatedImages);
+
+        // Check if anything was deleted
+        if (updatedImages.length === existingImages.length) {
+            console.warn("⚠️ No matching images found for deletion. Skipping Airtable update.");
+            return;
+        }
+
+        console.log(`📩 Sending updated image list to Airtable for '${imageField}':`, updatedImages);
+
+        // Update Airtable record
+        await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, {
+            [imageField]: updatedImages.length > 0 ? updatedImages : []
+        });
+
+        console.log(`✅ Successfully deleted selected images from '${imageField}' for Lot: ${lotName}`);
+
+        // ✅ **Refresh UI by reloading images dynamically**
+        await loadImagesForLot(lotName);  // 🔄 Refresh UI after update
+
+    } catch (error) {
+        console.error(`❌ Error deleting images from '${imageField}' in Airtable:`, error);
+    }
 }
 
-}
+
 
 async function fetchImagesByLotName(lotName, imageField) {
     console.log(`📡 Fetching images for lot: ${lotName}, field: ${imageField}`);
@@ -900,35 +916,64 @@ async function fetchImagesByLotName(lotName, imageField) {
 async function loadImagesForLot(lotName) {
     console.log("📡 Loading images for lot:", lotName);
 
-    // Fetch both sets of images
-    const issueImages = await fetchImagesByLotName(lotName, "Picture(s) of Issue");
-    const completedImages = await fetchImagesByLotName(lotName, "Completed  Pictures");
+    // Get elements and ensure they exist before accessing them
+    const issuePicturesSection = document.getElementById("issue-pictures");
+    const completedPicturesSection = document.getElementById("completed-pictures");
+    const uploadIssueInput = document.getElementById("upload-issue-picture");
+    const uploadCompletedInput = document.getElementById("upload-completed-picture");
 
-    console.log("🖼️ Loaded Images - Issue:", issueImages);
-    console.log("🖼️ Loaded Images - Completed:", completedImages);
-
-    // Check if any images exist, otherwise hide the sections
-    const hasIssueImages = issueImages && issueImages.length > 0;
-    const hasCompletedImages = completedImages && completedImages.length > 0;
-
-    document.getElementById("issue-pictures").style.display = hasIssueImages ? "block" : "none";
-    document.getElementById("completed-pictures").style.display = hasCompletedImages ? "block" : "none";
-
-    if (!hasIssueImages && !hasCompletedImages) {
-        console.warn("⚠️ No images found, hiding sections.");
-        checkAndHideDeleteButton(); // Hide delete button if no images
+    if (!issuePicturesSection || !completedPicturesSection || !uploadIssueInput || !uploadCompletedInput) {
+        console.error("❌ One or more required elements are missing from the DOM.");
         return;
     }
 
-    // Display images if available
-    if (hasIssueImages) {
-        await displayImages(issueImages, "issue-pictures");
-    }
-    if (hasCompletedImages) {
-        await displayImages(completedImages, "completed-pictures");
-    }
+    // Show loading indicators while fetching images
+    issuePicturesSection.innerHTML = "📡 Loading issue images...";
+    completedPicturesSection.innerHTML = "📡 Loading completed images...";
 
-    setTimeout(checkAndHideDeleteButton, 500); // ✅ Ensure delete button appears after images are displayed
+    try {
+        // Fetch both sets of images
+        const issueImages = await fetchImagesByLotName(lotName, "Picture(s) of Issue");
+        const completedImages = await fetchImagesByLotName(lotName, "Completed  Pictures");
+
+        console.log("🖼️ Loaded Images - Issue:", issueImages);
+        console.log("🖼️ Loaded Images - Completed:", completedImages);
+
+        // Check if any images exist
+        const hasIssueImages = issueImages && issueImages.length > 0;
+        const hasCompletedImages = completedImages && completedImages.length > 0;
+
+        // Show/Hide upload inputs based on images available
+        uploadIssueInput.style.display = hasIssueImages ? "block" : "none";
+        uploadCompletedInput.style.display = hasCompletedImages ? "block" : "none";
+
+        // Clear loading message before inserting images
+        issuePicturesSection.innerHTML = hasIssueImages ? "" : "";
+        completedPicturesSection.innerHTML = hasCompletedImages ? "" : "";
+
+        // If no images exist, hide sections and delete button
+        if (!hasIssueImages && !hasCompletedImages) {
+            console.warn("⚠️ No images found, hiding sections.");
+            checkAndHideDeleteButton(); // Hide delete button if no images
+            return;
+        }
+
+        // Display images if available
+        if (hasIssueImages) {
+            await displayImages(issueImages, "issue-pictures");
+        }
+        if (hasCompletedImages) {
+            await displayImages(completedImages, "completed-pictures");
+        }
+
+        // Ensure delete button updates correctly after image load
+        setTimeout(checkAndHideDeleteButton, 500);
+
+    } catch (error) {
+        console.error("❌ Error loading images for lot:", lotName, error);
+        issuePicturesSection.innerHTML = "❌ Error loading issue images.";
+        completedPicturesSection.innerHTML = "❌ Error loading completed images.";
+    }
 }
 
 
