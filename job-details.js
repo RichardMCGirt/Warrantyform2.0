@@ -549,7 +549,6 @@ async function populatePrimaryFields(job) { // ✅ Make function async
         hideElementById("homeowner-builder");
         hideElementById("subcontractor");
         hideElementById("materials-needed");
-        hideElementById("subcontractor-payment");
         hideElementById("billable-reason");
         hideElementById("field-review-not-needed");
         hideElementById("subcontractor-dropdown1-label");

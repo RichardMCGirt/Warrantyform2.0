@@ -64,12 +64,21 @@
 <select id="subcontractor-dropdown" data-field="Subcontractor">
     <option value="">Select a Subcontractor...</option>
 </select>
+<br>
+
+<div class="form-group">
+    <label for="subcontractor-payment">Subcontractor Payment</label>
+    <input type="number" id="subcontractor-payment" name="subcontractor-payment" step="0.01" min="0" placeholder="$0.00" data-field="Subcontractor Payment">
+</div>
 
 <div class="sub-completed-container">
     <label for="sub-not-needed">Sub not needed:</label>
     <input type="checkbox" id="sub-not-needed" data-field="Subcontractor Not Needed">
     
 </div>
+
+
+
 
 <div id="additional-fields-container">
     <div class="form-group">
@@ -107,10 +116,7 @@
         <input type="checkbox" id="field-review-not-needed" data-field="Field Review Needed">
     </div>
     
-    <div class="form-group">
-        <label for="subcontractor-payment">Subcontractor Payment</label>
-        <input type="number" id="subcontractor-payment" name="subcontractor-payment" step="0.01" min="0" placeholder="$0.00" data-field="Subcontractor Payment">
-    </div>
+  
     
     <div class="form-group">
         <label for="materials-needed">Materials Needed</label>
