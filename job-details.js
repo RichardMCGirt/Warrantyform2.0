@@ -63,6 +63,7 @@ function openMapApp() {
 
 document.addEventListener("DOMContentLoaded", async function () {
     console.log("🚀 Page Loaded: JavaScript execution started!");
+    dropboxAccessToken = await fetchDropboxToken();
 
     // ✅ Extract URL Parameters
     const params = new URLSearchParams(window.location.search);
@@ -224,7 +225,20 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.error("❌ Error occurred:", error);
     }
     
-
+    async function ensureDropboxToken() {
+        if (!dropboxAccessToken) {
+            console.log("🔄 Fetching Dropbox token...");
+            dropboxAccessToken = await fetchDropboxToken();
+        }
+    
+        if (!dropboxAccessToken) {
+            console.error("❌ Dropbox Access Token could not be retrieved.");
+            alert("Error: Could not retrieve Dropbox access token.");
+            return false;
+        }
+        return true;
+    }
+    
 
 
 
@@ -268,21 +282,18 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
     
 
-    // ✅ Handle Dropbox Image Upload
     document.getElementById("upload-issue-picture").addEventListener("change", async function (event) {
-        const files = event.target.files;
-       
-        // Upload to Dropbox
-        await uploadToDropbox(files, "Picture(s) of Issue");
+        if (await ensureDropboxToken()) {
+            await uploadToDropbox(event.target.files, "Picture(s) of Issue");
+        }
     });
     
-
     document.getElementById("upload-completed-picture").addEventListener("change", async function (event) {
-        const files = event.target.files;
-        
-        // Upload to Dropbox
-        await uploadToDropbox(files, "Completed  Pictures");
+        if (await ensureDropboxToken()) {
+            await uploadToDropbox(event.target.files, "Completed  Pictures");
+        }
     });
+    
     
 
     // 🔹 Fetch Airtable Record Function
@@ -324,9 +335,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             const data = await response.json();
             console.log("✅ Airtable Record Data:", data);
     
-            if (data.fields && !data.fields["Completed Pictures"]) {
-                console.warn("⚠️ 'Completed Pictures' field is missing. Initializing as empty array.");
-                data.fields["Completed Pictures"] = []; // Prevent undefined errors
+            if (data.fields && !data.fields["Completed  Pictures"]) {
+                console.warn("⚠️ 'Completed  Pictures' field is missing. Initializing as empty array.");
+                data.fields["Completed  Pictures"] = []; // Prevent undefined errors
             }
     
             return data;
@@ -1186,15 +1197,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // 🔹 Upload File to Dropbox
     async function uploadFileToDropbox(file) {
         console.log("🚀 Starting file upload to Dropbox...");
-    
         if (!dropboxAccessToken) {
             console.error("❌ Dropbox Access Token is missing.");
+            dropboxAccessToken = await fetchDropboxToken();
+        }
+    
+        if (!dropboxAccessToken) {
+            console.error("❌ Unable to obtain Dropbox Access Token.");
             return null;
         }
     
         const dropboxUploadUrl = "https://content.dropboxapi.com/2/files/upload";
         const path = `/uploads/${encodeURIComponent(file.name)}`;
-        console.log(`📤 Uploading file to Dropbox: ${file.name} at path: ${path}`);
     
         try {
             const response = await fetch(dropboxUploadUrl, {
@@ -1212,38 +1226,31 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: file
             });
     
-            console.log(`📡 Dropbox file upload response status: ${response.status}`);
-    
             if (!response.ok) {
                 const errorResponse = await response.json();
-                console.error("❌ Error uploading file to Dropbox:", errorResponse);
+                console.error("❌ Dropbox Upload Error:", errorResponse);
     
-                // Check if the error is due to an expired access token
-                if (errorResponse.error && errorResponse.error[".tag"] === "expired_access_token") {
-                    console.warn("⚠️ Dropbox access token has expired. Fetching a new token...");
-                    
-                    // Fetch new token and retry
+                if (errorResponse.error?.[".tag"] === "expired_access_token") {
+                    console.warn("⚠️ Dropbox token expired. Refreshing...");
                     dropboxAccessToken = await fetchDropboxToken();
-                    
+    
                     if (dropboxAccessToken) {
-                        console.log("🔄 Retrying file upload with refreshed token...");
-                        return await uploadFileToDropbox(file); // Retry upload with new token
-                    } else {
-                        console.error("❌ Failed to refresh Dropbox token. Upload cannot proceed.");
-                        return null;
+                        console.log("🔄 Retrying file upload...");
+                        return await uploadFileToDropbox(file);
                     }
                 }
                 return null;
             }
     
             const data = await response.json();
-            console.log("✅ File uploaded to Dropbox successfully:", data);
+            console.log("✅ File uploaded successfully:", data);
             return await getDropboxSharedLink(data.path_lower);
         } catch (error) {
-            console.error("❌ Error during file upload to Dropbox:", error);
+            console.error("❌ Error during Dropbox upload:", error);
             return null;
         }
     }
+    
     
     // 🔹 Get Dropbox Shared Link
     async function getDropboxSharedLink(filePath) {
