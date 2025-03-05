@@ -535,6 +535,7 @@ async function populatePrimaryFields(job) { // ✅ Make function async
     setInputValue("field-status", job["Status"]);
     setInputValue("sub-not-needed", job["Subcontractor Not Needed"]);
 
+    adjustTextareaSize("description");
 
     console.log("✅ Images Loaded - Checking Status...");
 
@@ -605,7 +606,13 @@ function hideElementById(elementId) {
     element.style.display = "none";
 }
 
-
+function adjustTextareaSize(id) {
+    const textarea = document.getElementById(id);
+    if (textarea) {
+        textarea.style.height = "auto"; // Reset height
+        textarea.style.height = textarea.scrollHeight + "px"; // Set height dynamically
+    }
+}
 
 function showElement(elementId) {
     const element = document.getElementById(elementId);
