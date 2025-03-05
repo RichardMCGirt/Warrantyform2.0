@@ -522,79 +522,75 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
     
 // 🔹 Populate Primary Fields
-async function populatePrimaryFields(job) { // ✅ Make function async
+async function populatePrimaryFields(job) {
     console.log("🛠 Populating UI with Record ID:", job["id"]);
 
-    setInputValue("job-name", job["Lot Number and Community/Neighborhood"]);
-    setInputValue("field-tech", job["field tech"]);
-    setInputValue("address", job["Address"]);
-    setInputValue("homeowner-name", job["Homeowner Name"]);
-    setInputValue("contact-email", job["Contact Email"]);
-    setInputValue("description", job["Description of Issue"]);
-    setInputValue("dow-completed", job["DOW to be Completed"]); 
-    setInputValue("field-status", job["Status"]);
-    setInputValue("sub-not-needed", job["Subcontractor Not Needed"]);
+    function safeValue(value) {
+        return value === undefined || value === null ? "" : value; 
+    }
 
+    setInputValue("job-name", safeValue(job["Lot Number and Community/Neighborhood"]));
+    setInputValue("field-tech", safeValue(job["field tech"]));
+    setInputValue("address", safeValue(job["Address"]));
+    setInputValue("homeowner-name", safeValue(job["Homeowner Name"]));
+    setInputValue("contact-email", safeValue(job["Contact Email"]));
+    setInputValue("description", safeValue(job["Description of Issue"]));
+    setInputValue("dow-completed", safeValue(job["DOW to be Completed"])); 
+    setInputValue("materials-needed", safeValue(job["Materials Needed"]));
+    setInputValue("field-status", safeValue(job["Status"]));
+    setCheckboxValue("sub-not-needed", job["Subcontractor Not Needed"] || false);
+
+    console.log("✅ Fields populated successfully.");
+
+    // ✅ Resize textareas dynamically
     adjustTextareaSize("description");
+    adjustTextareaSize("dow-completed");
+    adjustTextareaSize("materials-needed");
 
     console.log("✅ Images Loaded - Checking Status...");
 
     // ✅ If status is "Scheduled - Awaiting Field", delete images
     if (job["Status"] === "Scheduled- Awaiting Field") {
         console.log("🚨 Job is 'Scheduled - Awaiting Field' - Deleting completed images...");
-        
-        // ✅ Ensure deletion completes before continuing
         await deleteImagesByLotName(job["Lot Number and Community/Neighborhood"], [], "Completed  Pictures");
 
-        hideElementById("billable-status");
-        hideElementById("homeowner-builder");
-        hideElementById("subcontractor");
-        hideElementById("materials-needed");
-        hideElementById("billable-reason");
-        hideElementById("field-review-not-needed");
-        hideElementById("subcontractor-dropdown1-label");
-        hideElementById("subcontractor-dropdown1");
-        hideElementById("field-review-needed");
-        hideElementById("field-tech-reviewed");
-        hideElementById("subcontractor-dropdown");
-        hideElementById("additional-fields-container");
-        hideElementById("message-container");
+        // ✅ Hide unnecessary fields
+        ["billable-status", "homeowner-builder", "subcontractor", "materials-needed", "billable-reason", 
+         "field-review-not-needed", "subcontractor-dropdown1-label", "subcontractor-dropdown1", 
+         "field-review-needed", "field-tech-reviewed", "subcontractor-dropdown", 
+         "additional-fields-container", "message-container"].forEach(hideElementById);
     } else {
         console.log("✅ Status is NOT 'Scheduled- Awaiting Field' - Showing all fields.");
+
         showElement("job-completed");
         showElement("job-completed-label");
 
-        setInputValue("billable-status", job["Billable/ Non Billable"]);
-        setInputValue("homeowner-builder", job["Homeowner Builder pay"]);
-        setInputValue("billable-reason", job["Billable Reason (If Billable)"]);
-        setInputValue("subcontractor", job["Subcontractor"]);
-        setInputValue("materials-needed", job["Materials Needed"]);
-        setInputValue("subcontractor-payment", job["Subcontractor Payment"]); 
+        setInputValue("billable-status", safeValue(job["Billable/ Non Billable"]));
+        setInputValue("homeowner-builder", safeValue(job["Homeowner Builder pay"]));
+        setInputValue("billable-reason", safeValue(job["Billable Reason (If Billable)"]));
+        setInputValue("subcontractor", safeValue(job["Subcontractor"]));
+        setInputValue("materials-needed", safeValue(job["Materials Needed"]));
+        setInputValue("subcontractor-payment", safeValue(job["Subcontractor Payment"])); 
         setCheckboxValue("sub-not-needed", job["Subcontractor Not Needed"]);
-
         setCheckboxValue("field-tech-reviewed", job["Field Tech Reviewed"]);
     }
 
     setCheckboxValue("job-completed", job["Job Completed"]);
 
-   // ✅ Hide elements if "Field Tech Review Needed"
-   if (job["Status"] === "Field Tech Review Needed") {
-    console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
-    hideElementById("completed-pictures");
-    hideElementById("upload-completed-picture");
-    hideElementById("completed-pictures-heading");
-    hideElementById("file-input-container"); 
-    hideElementById("job-completed-container"); // Ensure this hides the new div
-    hideElementById("job-completed"); // Ensure this hides the new div
-    hideElementById("job-completed-check"); // Ensure this hides the new div
-
-
-} else {
-    showElement("job-completed-container"); // Show it if status is NOT "Field Tech Review Needed"
-}
+    // ✅ Hide elements if "Field Tech Review Needed"
+    if (job["Status"] === "Field Tech Review Needed") {
+        console.log("🚨 Field Tech Review Needed - Hiding completed job elements.");
+        ["completed-pictures", "upload-completed-picture", "completed-pictures-heading", 
+         "file-input-container", "job-completed-container", "job-completed", "job-completed-check"]
+         .forEach(hideElementById);
+    } else {
+        showElement("job-completed-container");
+    }
 
     showElement("save-job"); 
 }
+
+
 
 // Function to hide an element safely
 function hideElementById(elementId) {
@@ -606,13 +602,21 @@ function hideElementById(elementId) {
     element.style.display = "none";
 }
 
+// Function to resize any textarea dynamically
 function adjustTextareaSize(id) {
     const textarea = document.getElementById(id);
     if (textarea) {
         textarea.style.height = "auto"; // Reset height
-        textarea.style.height = textarea.scrollHeight + "px"; // Set height dynamically
+        textarea.style.height = textarea.scrollHeight + "px"; // Adjust height based on content
     }
 }
+
+// Ensure resizing also happens when a user types in the textarea
+document.addEventListener("input", function (event) {
+    if (event.target.tagName.toLowerCase() === "textarea") {
+        adjustTextareaSize(event.target.id);
+    }
+});
 
 function showElement(elementId) {
     const element = document.getElementById(elementId);
@@ -1065,19 +1069,23 @@ document.addEventListener("DOMContentLoaded", () => {
         inputs.forEach(input => {
             let fieldName = input.getAttribute("data-field");
             if (fieldName) {
-                let value;
+                let value = input.value.trim();
     
+                // ✅ Handle checkboxes
                 if (input.type === "checkbox") {
                     value = input.checked;
-                } else if (input.tagName === "SELECT") {
-                    value = input.value.trim();
-                    if (value === "" || value === "undefined") return;
-                } else if (input.type === "number") {
-                    value = input.value.trim();
+                } 
+                // ✅ Handle dropdowns (ensure empty selections are `null`)
+                else if (input.tagName === "SELECT") {
+                    value = value === "" ? null : value;
+                } 
+                // ✅ Handle numbers (ensure empty values are `null`)
+                else if (input.type === "number") {
                     value = value === "" ? null : parseFloat(value);
-                } else {
-                    value = input.value.trim();
-                    if (value === "") return;
+                } 
+                // ✅ Handle text fields & textareas (ensure empty text is `null`)
+                else {
+                    value = value === "" ? null : value;
                 }
     
                 updatedFields[fieldName] = value;
@@ -1093,24 +1101,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     
         try {
-            // ✅ Call updateAirtableRecord with lotName
+            // ✅ Update Airtable with cleaned values
             await updateAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName, updatedFields);
             console.log("✅ Airtable record updated successfully.");
-            
-            // ✅ Show toast only after successful save
+    
             showToast("✅ Job details saved successfully!", "success");
     
-            // 🔹 Fetch Updated Data and Refresh UI
+            // ✅ Reload UI with updated data
             setTimeout(async () => {
                 const updatedData = await fetchAirtableRecord(window.env.AIRTABLE_TABLE_NAME, lotName);
                 console.log("📩 Reloading checkboxes with updated Airtable data:", updatedData);
                 populatePrimaryFields(updatedData.fields);
             }, 1000); 
+    
         } catch (error) {
             console.error("❌ Error updating Airtable:", error);
             showToast("❌ Error saving job details. Please try again.", "error");
         }
     });
+    
+    
+    
     
     function showToast(message, type = "success") {
         let toast = document.getElementById("toast-message");

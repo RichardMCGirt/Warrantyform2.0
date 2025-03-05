@@ -153,7 +153,6 @@ label[for="field-status"] {
 }
 
 textarea {
-    -webkit-appearance: none; /* Prevents default iOS styling */
     font-size: 16px; /* Ensures consistent text rendering */
 }
 
