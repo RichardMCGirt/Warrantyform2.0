@@ -152,10 +152,16 @@ label[for="field-status"] {
     display: none;
 }
 
+textarea {
+    -webkit-appearance: none; /* Prevents default iOS styling */
+    font-size: 16px; /* Ensures consistent text rendering */
+}
+
+
 
 textarea {
-    min-height: min-content;
     resize: vertical;
+    
 }
 
 input[disabled],
@@ -384,6 +390,10 @@ input[type="file"] {
     height: 100%;
     border-radius: 50%;
     transition: color 0.3s ease-in-out;
+}
+
+#dow-complete {
+    min-height: max-content;
 }
 
 
