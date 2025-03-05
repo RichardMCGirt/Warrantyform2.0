@@ -52,8 +52,7 @@
 <input type="email" id="contact-email" data-field="Contact Email" disabled>
 
 <label>Description:</label>
-<textarea id="description" data-field="Description of Issue" disabled 
-    style="overflow: hidden; resize: none; width: 100%; box-sizing: border-box; padding: 10px; line-height: 1.5;"></textarea>
+<textarea id="description" data-field="Description of Issue" disabled ></textarea>
 
 
 
@@ -197,85 +196,7 @@
     <script src="job-details.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 
-    <script>
-        function autoResizeTextarea(textarea) {
-            console.log("Resizing textarea...");
-
-            // Temporarily reset height to 'auto' to get accurate scrollHeight
-            textarea.style.height = 'auto';
-
-            // Force reflow (important for iOS Safari!)
-            textarea.style.display = "block"; 
-            textarea.offsetHeight; // Trigger reflow
-            textarea.style.display = ""; 
-
-            // Get computed styles
-            let computedStyle = window.getComputedStyle(textarea);
-            let paddingTop = parseFloat(computedStyle.paddingTop);
-            let paddingBottom = parseFloat(computedStyle.paddingBottom);
-            let borderTop = parseFloat(computedStyle.borderTopWidth);
-            let borderBottom = parseFloat(computedStyle.borderBottomWidth);
-
-            let totalPaddingBorder = paddingTop + paddingBottom + borderTop + borderBottom;
-
-            let newHeight = (textarea.scrollHeight + totalPaddingBorder + 10) + 'px'; 
-            textarea.style.height = newHeight;
-
-            console.log("New textarea height:", newHeight);
-
-            // Add additional text areas if text exceeds a certain threshold
-            createAdditionalTextareas(textarea);
-        }
-
-        function createAdditionalTextareas(originalTextarea) {
-            const container = document.getElementById("additional-textareas");
-            container.innerHTML = ""; // Clear previously added textareas
-
-            const lines = originalTextarea.value.split("\n");
-            const maxLinesPerTextarea = 5; // Adjust max lines per textarea as needed
-
-            let currentText = [];
-            lines.forEach((line, index) => {
-                currentText.push(line);
-
-                if (currentText.length >= maxLinesPerTextarea || index === lines.length - 1) {
-                    let newTextarea = document.createElement("textarea");
-                    newTextarea.value = currentText.join("\n");
-                    newTextarea.readOnly = true; // Prevent user input for additional text areas
-                    newTextarea.style.height = "auto"; // Auto-size
-                    newTextarea.style.minHeight = "50px"; // Prevent very small areas
-                    newTextarea.style.width = "100%";
-                    newTextarea.style.overflow = "hidden";
-                    container.appendChild(newTextarea);
-
-                    // Reset for next block
-                    currentText = [];
-                }
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            let textarea = document.getElementById('description');
-
-            console.log("Textarea found:", textarea ? "Yes" : "No");
-
-            let newText = `This is a test description added dynamically. 
-Let's add more text to make sure the textarea fully expands
-without scrolling or text getting cut off. More content to test 
-how well it adjusts to text wrapping and line breaks.
-This should trigger additional text areas being added dynamically.
-More lines should be placed into new boxes below.`;
-
-            console.log("Setting new text:", newText);
-            textarea.value = newText;
-
-            // Use a small delay to allow proper rendering on iOS Safari
-            setTimeout(() => autoResizeTextarea(textarea), 100);
-
-            // Ensure resizing happens on input
-            textarea.addEventListener("input", () => autoResizeTextarea(textarea));
-        });
-    </script>
+        
 
 </body>
 </html>
